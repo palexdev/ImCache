@@ -1,0 +1,55 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id 'java-library'
+    id 'com.vanniktech.maven.publish' version "$mavenPublish"
+    id 'org.openjfx.javafxplugin' version "$jfxPlugin"
+}
+
+group = 'io.github.palexdev'
+version = "$imcache"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform("org.junit:junit-bom:$junit")
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation "org.awaitility:awaitility:$awaitility"
+    testImplementation "commons-io:commons-io:$apacheio"
+    testImplementation "org.testfx:testfx-core:$testfx"
+    testImplementation "org.testfx:testfx-junit5:$testfx"
+}
+
+java {
+    sourceCompatibility = "$jdk"
+    targetCompatibility = "$jdk"
+    withSourcesJar()
+    withJavadocJar()
+    tasks.withType(Jar).each { it.archiveBaseName.set("imcache") }
+}
+
+javafx {
+    version = "$jfx"
+    configurations = ['testImplementation']
+    modules = ['javafx.controls', 'javafx.swing']
+}
+
+test {
+    useJUnitPlatform()
+}
+
+configurations {
+    // Remove vanniktech non-sense
+    gradle.taskGraph.whenReady { graph ->
+        if (graph.hasTask(plainJavadocJar)) {
+            plainJavadocJar.enabled = false
+        }
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.S01)
+    signAllPublications()
+}
