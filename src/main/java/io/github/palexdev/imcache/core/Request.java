@@ -52,11 +52,11 @@ public class Request {
 
             Image src;
             if (isOverwrite()) {
-                src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
-                    .ifPresent(i -> state = RequestState.CACHE_HIT)
-                    .orElseGet(() -> Image.wrap(url, Downloader.download(this)));
-            } else {
                 src = Image.wrap(url, Downloader.download(this));
+            } else {
+                src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
+                        .ifPresent(i -> state = RequestState.CACHE_HIT)
+                        .orElseGet(() -> Image.wrap(url, Downloader.download(this)));
             }
             Image out = transform(src);
             ImCache.instance().store(this, src, out);
