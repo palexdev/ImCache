@@ -23,6 +23,18 @@ public class DiskCache extends Cache<File> {
     //================================================================================
     // Methods
     //================================================================================
+    protected boolean delete(File file) {
+        boolean done = file.delete();
+        if (!done) {
+            // TODO use logger?
+        }
+        return done;
+    }
+
+    //================================================================================
+    // Overridden Methods
+    //================================================================================
+    @Override
     public DiskCache scan() {
         if (capacity == 0) return this;
         try (Stream<Path> stream = Files.list(savePath)) {
@@ -42,17 +54,6 @@ public class DiskCache extends Cache<File> {
         return this;
     }
 
-    protected boolean delete(File file) {
-        boolean done = file.delete();
-        if (!done) {
-            // TODO use logger?
-        }
-        return done;
-    }
-
-    //================================================================================
-    // Overridden Methods
-    //================================================================================
     @Override
     public void store(String name, Image img) {
         if (capacity == 0) return;

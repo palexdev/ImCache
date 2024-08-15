@@ -9,6 +9,7 @@ import java.util.UUID;
 
 public interface ICache<V> {
 
+    // TODO move this to Request as id()
     default String toName(Request request) {
         try {
             return UUID.nameUUIDFromBytes(
@@ -23,6 +24,10 @@ public interface ICache<V> {
                 ex
             );
         }
+    }
+
+    default ICache<V> scan() {
+        return this;
     }
 
     void store(String name, Image img);
