@@ -22,18 +22,18 @@ public class MemoryCache extends Cache<Image> {
     // Methods
     //================================================================================
     public MemoryCache saveToDisk(Path savePath) {
-        String name = null;
+        String id = null;
         try {
             for (Map.Entry<String, Image> e : cache.entrySet()) {
-                name = e.getKey();
+                id = e.getKey();
                 Image img = e.getValue();
-                Path path = savePath.resolve(name);
+                Path path = savePath.resolve(id);
                 Files.write(path, img.rawData(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             }
         } catch (IOException ex) {
             throw new ImCacheException(
                 "Failed to save image %s from memory to disk"
-                    .formatted(name),
+                    .formatted(id),
                 ex
             );
         }
@@ -64,30 +64,30 @@ public class MemoryCache extends Cache<Image> {
     }
 
     @Override
-    public void store(String name, Image img) {
+    public void store(String id, Image img) {
         if (capacity == 0) return;
         if (size() == capacity) cache.pollFirstEntry();
-        cache.put(name, img);
+        cache.put(id, img);
     }
 
     @Override
-    public boolean contains(String name) {
-        return cache.containsKey(name);
+    public boolean contains(String id) {
+        return cache.containsKey(id);
     }
 
     @Override
-    public Optional<Image> get(String name) {
-        return Optional.ofNullable(cache.get(name));
+    public Optional<Image> get(String id) {
+        return Optional.ofNullable(cache.get(id));
     }
 
     @Override
-    public Optional<Image> getImage(String name) {
-        return get(name);
+    public Optional<Image> getImage(String id) {
+        return get(id);
     }
 
     @Override
-    public boolean remove(String name) {
-        return Optional.ofNullable(cache.remove(name)).isPresent();
+    public boolean remove(String id) {
+        return Optional.ofNullable(cache.remove(id)).isPresent();
     }
 
     //================================================================================

@@ -11,12 +11,14 @@ import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Optional;
+import java.util.UUID;
 
 public class Request {
     //================================================================================
     // Properties
     //================================================================================
     private RequestState state = RequestState.READY;
+    private String id;
     private URL url;
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
     private ThrowingTriConsumer<Request, Image, Image> onSuccess = (r, src, out) -> {};
@@ -158,6 +160,21 @@ public class Request {
     //================================================================================
     public RequestState state() {
         return state;
+    }
+
+    public String id() {
+        if (id == null) {
+            try {
+                id = UUID.nameUUIDFromBytes(url.toString().getBytes()).toString();
+            } catch (Exception ex) {
+                throw new ImCacheException(
+                    "Failed to generate id for request %s to a name"
+                        .formatted(this),
+                    ex
+                );
+            }
+        }
+        return id;
     }
 
     public URL url() {

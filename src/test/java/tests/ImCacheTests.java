@@ -59,7 +59,7 @@ public class ImCacheTests {
     void testDownload() {
         Request request = downloadImg().execute();
         assertSame(RequestState.SUCCEEDED, request.state());
-        assertTrue(Files.exists(TEMP_DIR.resolve(ImCache.instance().storage().toName(request))));
+        assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
     }
 
     @Test
@@ -69,7 +69,7 @@ public class ImCacheTests {
                 .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
                 .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
-        assertTrue(Files.exists(TEMP_DIR.resolve(ImCache.instance().storage().toName(request))));
+        assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
         Utils.sleep(1000);
     }
 
@@ -80,7 +80,7 @@ public class ImCacheTests {
                 .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
                 .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
-        assertTrue(Files.exists(TEMP_DIR.resolve(ImCache.instance().storage().toName(request))));
+        assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
         Utils.sleep(2000);
     }
 

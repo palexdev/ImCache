@@ -55,36 +55,36 @@ public class DiskCache extends Cache<File> {
     }
 
     @Override
-    public void store(String name, Image img) {
+    public void store(String id, Image img) {
         if (capacity == 0) return;
         if (size() == capacity) remove(cache.firstEntry().getKey());
         try {
-            Path file = savePath.resolve(name);
+            Path file = savePath.resolve(id);
             Files.createDirectories(file.getParent());
             Files.write(file, img.rawData(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            cache.put(name, file.toFile());
+            cache.put(id, file.toFile());
         } catch (Exception ex) {
             throw new ImCacheException(
                 "Failed to store image %s in cache"
-                    .formatted(name),
+                    .formatted(id),
                 ex
             );
         }
     }
 
     @Override
-    public boolean contains(String name) {
-        return cache.containsKey(name);
+    public boolean contains(String id) {
+        return cache.containsKey(id);
     }
 
     @Override
-    public Optional<File> get(String name) {
-        return Optional.ofNullable(cache.get(name));
+    public Optional<File> get(String id) {
+        return Optional.ofNullable(cache.get(id));
     }
 
     @Override
-    public Optional<Image> getImage(String name) {
-        Optional<File> opt = get(name);
+    public Optional<Image> getImage(String id) {
+        Optional<File> opt = get(id);
         if (opt.isEmpty()) return Optional.empty();
         File file = opt.get();
         // TODO for now the url is lost once loading the file
@@ -93,8 +93,8 @@ public class DiskCache extends Cache<File> {
     }
 
     @Override
-    public boolean remove(String name) {
-        File file = cache.remove(name);
+    public boolean remove(String id) {
+        File file = cache.remove(id);
         if (file == null) return false;
         return delete(file);
     }

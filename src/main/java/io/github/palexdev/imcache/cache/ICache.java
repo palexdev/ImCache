@@ -1,59 +1,40 @@
 package io.github.palexdev.imcache.cache;
 
 import io.github.palexdev.imcache.core.Request;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.core.Image;
 
 import java.util.Optional;
-import java.util.UUID;
 
 public interface ICache<V> {
-
-    // TODO move this to Request as id()
-    default String toName(Request request) {
-        try {
-            return UUID.nameUUIDFromBytes(
-                request.url()
-                    .toString()
-                    .getBytes()
-            ).toString();
-        } catch (Exception ex) {
-            throw new ImCacheException(
-                "Failed to convert request %s to a name"
-                    .formatted(request),
-                ex
-            );
-        }
-    }
 
     default ICache<V> scan() {
         return this;
     }
 
-    void store(String name, Image img);
+    void store(String id, Image img);
 
-    boolean contains(String name);
+    boolean contains(String id);
 
     default boolean contains(Request request) {
-        return contains(toName(request));
+        return contains(request.id());
     }
 
-    Optional<V> get(String name);
+    Optional<V> get(String id);
 
     default Optional<V> get(Request request) {
-        return get(toName(request));
+        return get(request.id());
     }
 
-    Optional<Image> getImage(String name);
+    Optional<Image> getImage(String id);
 
     default Optional<Image> getImage(Request request) {
-        return getImage(toName(request));
+        return getImage(request.id());
     }
 
-    boolean remove(String name);
+    boolean remove(String id);
 
     default boolean remove(Request request) {
-        return remove(toName(request));
+        return remove(request.id());
     }
 
     void clear();
