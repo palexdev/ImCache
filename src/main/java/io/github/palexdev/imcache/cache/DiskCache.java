@@ -26,7 +26,10 @@ public class DiskCache extends Cache<File> {
     protected boolean delete(File file) {
         boolean done = file.delete();
         if (!done) {
-            // TODO use logger?
+            throw new ImCacheException(
+                "Failed to delete file %s"
+                .formatted(file)
+            );
         }
         return done;
     }
