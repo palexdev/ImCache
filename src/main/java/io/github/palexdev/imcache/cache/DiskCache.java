@@ -45,7 +45,7 @@ public class DiskCache extends Cache<File> {
                 .map(Path::toFile)
                 .sorted(Comparator.comparingLong(File::lastModified))
                 .forEach(f -> {
-                    if (size() == capacity) remove(cache.firstEntry().getKey());
+                    if (size() == capacity) removeOldest();
                     cache.put(f.getName(), f);
                 });
         } catch (IOException ex) {
@@ -60,7 +60,7 @@ public class DiskCache extends Cache<File> {
     @Override
     public void store(String id, Image img) {
         if (capacity == 0) return;
-        if (size() == capacity) remove(cache.firstEntry().getKey());
+        if (size() == capacity) removeOldest();
         try {
             Path file = savePath.resolve(id);
             Files.createDirectories(file.getParent());
@@ -100,6 +100,12 @@ public class DiskCache extends Cache<File> {
         File file = cache.remove(id);
         if (file == null) return false;
         return delete(file);
+    }
+
+    @Override
+    public boolean removeOldest() {
+        if (cache.isEmpty()) return false;
+        return remove(cache.firstEntry().getKey());
     }
 
     @Override

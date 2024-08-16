@@ -51,7 +51,7 @@ public class MemoryCache extends Cache<Image> {
                 .map(Path::toFile)
                 .sorted(Comparator.comparingLong(File::lastModified))
                 .forEach(f -> {
-                    if (size() == capacity) remove(cache.firstEntry().getKey()); // TODO add method to remove oldest entry
+                    if (size() == capacity) removeOldest();
                     cache.put(f.getName(), Image.wrap(null, FileUtils.read(f)));
                 });
         } catch (IOException ex) {
@@ -66,7 +66,7 @@ public class MemoryCache extends Cache<Image> {
     @Override
     public void store(String id, Image img) {
         if (capacity == 0) return;
-        if (size() == capacity) cache.pollFirstEntry();
+        if (size() == capacity) removeOldest();
         cache.put(id, img);
     }
 
@@ -88,6 +88,12 @@ public class MemoryCache extends Cache<Image> {
     @Override
     public boolean remove(String id) {
         return Optional.ofNullable(cache.remove(id)).isPresent();
+    }
+
+    @Override
+    public boolean removeOldest() {
+        if (cache.isEmpty()) return false;
+        return remove(cache.firstEntry().getKey());
     }
 
     //================================================================================

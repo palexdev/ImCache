@@ -37,6 +37,8 @@ public interface ICache<V> {
         return remove(request.id());
     }
 
+    boolean removeOldest();
+
     void clear();
 
     int size();

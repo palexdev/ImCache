@@ -43,7 +43,7 @@ public abstract class Cache<V> implements ICache<V> {
 
     @Override
     public ICache<V> setCapacity(int capacity) {
-        while (size() > capacity) cache.pollFirstEntry();
+        while (size() > capacity) removeOldest();
         this.capacity = capacity;
         return this;
     }
