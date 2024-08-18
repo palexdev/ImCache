@@ -6,6 +6,8 @@ import io.github.palexdev.imcache.utils.ImageUtils;
 import io.github.palexdev.imcache.utils.MediaType;
 
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.net.URLConnection;
 
 public class Downloader {
@@ -21,32 +23,30 @@ public class Downloader {
     public static byte[] download(ImRequest request) {
         try {
             // Open connection
-            URLConnection connection = request.url().openConnection();
+            URL url = new URI(request.url()).toURL();
+            URLConnection connection = url.openConnection();
             request.getNetConfig().accept(connection);
-            if (!verify(connection)) {
-                throw new ImCacheException(
-                    "Failed to download resource because of invalid url %s"
-                        .formatted(request.url())
-                );
-            }
+            verify(connection);
 
             // Transfer to memory
             try (InputStream is = connection.getInputStream()) {
                 return ImageUtils.toBytes(null, is);
             }
-        } catch (ImCacheException ice) {
-            throw ice;
         } catch (Exception ex) {
             throw new ImCacheException(
-                "Failed to download image for request %s"
-                    .formatted(request),
+                "Failed to download image for request %s because: %s"
+                    .formatted(request, ex.getMessage()),
                 ex
             );
         }
     }
 
-    private static boolean verify(URLConnection connection) {
+    private static void verify(URLConnection connection) throws ImCacheException {
         String type = connection.getContentType();
-        return MediaType.isSupportedMimeType(type);
+        if (!MediaType.isSupportedMimeType(type))
+            throw new ImCacheException(
+                "Unsupported MIME type %s for url %s"
+                    .formatted(type, connection.getURL())
+            );
     }
 }
