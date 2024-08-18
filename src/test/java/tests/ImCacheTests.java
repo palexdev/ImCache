@@ -3,8 +3,10 @@ package tests;
 import io.github.palexdev.imcache.cache.DiskCache;
 import io.github.palexdev.imcache.cache.MemoryCache;
 import io.github.palexdev.imcache.core.ImCache;
+import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.core.ImRequest.RequestState;
+import io.github.palexdev.imcache.network.Downloader;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
@@ -21,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -101,7 +105,7 @@ public class ImCacheTests {
             .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
-        Utils.sleep(1000);
+        Utils.sleep(500);
     }
 
     @Test
@@ -116,7 +120,7 @@ public class ImCacheTests {
             .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
-        Utils.sleep(2000);
+        Utils.sleep(1000);
     }
 
     @Test
@@ -168,6 +172,14 @@ public class ImCacheTests {
         ImCache.instance().storage()
             .getImage(request)
             .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+        // Also check for ImImage objects integrity after deserialization
+        for (Map.Entry<String, ?> stringEntry : ImCache.instance().storage()) {
+            Optional<ImImage> img = ImCache.instance().storage().getImage(stringEntry.getKey());
+            assertTrue(img.isPresent());
+            assertNotNull(img.get().url());
+            assertDoesNotThrow(() -> Downloader.toURL(img.get().url()));
+        }
+        Utils.sleep(500);
     }
 
     @Test
@@ -191,6 +203,14 @@ public class ImCacheTests {
         ImCache.instance().storage()
             .getImage(request)
             .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+        // Also check for ImImage objects integrity after deserialization
+        for (Map.Entry<String, ?> stringEntry : ImCache.instance().storage()) {
+            Optional<ImImage> img = ImCache.instance().storage().getImage(stringEntry.getKey());
+            assertTrue(img.isPresent());
+            assertNotNull(img.get().url());
+            assertDoesNotThrow(() -> Downloader.toURL(img.get().url()));
+        }
+        Utils.sleep(500);
     }
 
     //================================================================================
