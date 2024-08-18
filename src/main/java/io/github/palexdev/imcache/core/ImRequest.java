@@ -4,9 +4,11 @@ import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.network.Downloader;
 import io.github.palexdev.imcache.transforms.Transform;
 import io.github.palexdev.imcache.utils.AsyncUtils;
+import io.github.palexdev.imcache.utils.ImageUtils;
 import io.github.palexdev.imcache.utils.OptionalWrapper;
 import io.github.palexdev.imcache.utils.ThrowingConsumer;
 
+import java.awt.image.BufferedImage;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,13 +94,12 @@ public class ImRequest {
 
     protected ImImage transform(ImImage src) {
         if (transforms.isEmpty()) return src;
-        // TODO implement
-        throw new UnsupportedOperationException("Transforms are not yet implemented");
-        /*ImImage out = src;
+        BufferedImage img = src.asImage();
         for (Transform transform : transforms) {
-            out = transform.transform(out);
+            img = transform.transform(img);
         }
-        return out;*/
+        // TODO add converter function
+        return ImImage.wrap(src.url(), ImageUtils.toBytes("png", img));
     }
 
     // Setup

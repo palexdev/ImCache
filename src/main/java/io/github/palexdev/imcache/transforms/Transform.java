@@ -1,8 +1,8 @@
 package io.github.palexdev.imcache.transforms;
 
-import io.github.palexdev.imcache.core.ImImage;
+import java.awt.image.BufferedImage;
 
 @FunctionalInterface
 public interface Transform {
-    ImImage transform(ImImage src);
+    BufferedImage transform(BufferedImage src);
 }
