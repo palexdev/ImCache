@@ -14,6 +14,14 @@ public class OptionalWrapper<T> {
     //================================================================================
     public OptionalWrapper(Optional<T> optional) {this.optional = optional;}
 
+    public static <T> OptionalWrapper<T> of(T val) {
+        return wrap(Optional.of(val));
+    }
+
+    public static <T> OptionalWrapper<T> ofNullable(T val) {
+        return wrap(Optional.ofNullable(val));
+    }
+
     public static <T> OptionalWrapper<T> wrap(Optional<T> optional) {
         return new OptionalWrapper<>(optional);
     }
@@ -28,6 +36,10 @@ public class OptionalWrapper<T> {
 
     public Optional<T> ifPresentOrElse(Consumer<T> consumer, Runnable emptyAction) {
         optional.ifPresentOrElse(consumer, emptyAction);
+        return optional;
+    }
+
+    public Optional<T> optional() {
         return optional;
     }
 }
