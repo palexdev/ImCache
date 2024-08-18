@@ -24,6 +24,11 @@ public abstract class Cache<V> implements ICache<V> {
     // Overridden Methods
     //================================================================================
     @Override
+    public Iterator<Map.Entry<String, V>> iterator() {
+        return Collections.unmodifiableMap(cache).entrySet().iterator();
+    }
+
+    @Override
     public void clear() {
         cache.clear();
     }

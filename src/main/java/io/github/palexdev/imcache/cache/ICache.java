@@ -3,9 +3,10 @@ package io.github.palexdev.imcache.cache;
 import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.core.ImRequest;
 
+import java.util.Map;
 import java.util.Optional;
 
-public interface ICache<V> {
+public interface ICache<V> extends Iterable<Map.Entry<String, V>> {
 
     default ICache<V> scan() {
         return this;
