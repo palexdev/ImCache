@@ -63,6 +63,7 @@ public class ImageUtils {
                 case BufferedImage bi -> {
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
                     ImageIO.write(bi, format, out);
+                    if (out.size() == 0) throw new ImCacheException("Conversion from BufferedImage to byte[] failed");
                     yield out.toByteArray();
                 }
                 case InputStream is -> {
@@ -108,6 +109,7 @@ public class ImageUtils {
                 case BufferedImage bi -> {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     ImageIO.write(bi, format, baos);
+                    if (baos.size() == 0) throw new ImCacheException("Conversion from BufferedImage to InputStream failed");
                     yield new ByteArrayInputStream(toBytes(format, data));
                 }
                 case null, default -> InputStream.nullInputStream();
