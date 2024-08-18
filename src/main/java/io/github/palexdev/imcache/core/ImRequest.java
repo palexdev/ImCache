@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 public class ImRequest {
     //================================================================================
@@ -26,6 +27,7 @@ public class ImRequest {
     private final List<Transform> transforms = new ArrayList<>();
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
     private ThrowingConsumer<Result> onStateChanged = r -> {};
+    private Function<BufferedImage, byte[]> imageConverter = i -> ImageUtils.toBytes("png", i);
 
     //================================================================================
     // Constructors
@@ -98,8 +100,7 @@ public class ImRequest {
         for (Transform transform : transforms) {
             img = transform.transform(img);
         }
-        // TODO add converter function
-        return ImImage.wrap(src.url(), ImageUtils.toBytes("png", img));
+        return ImImage.wrap(src.url(), imageConverter.apply(img));
     }
 
     // Setup
@@ -126,6 +127,11 @@ public class ImRequest {
 
     public ImRequest onStateChanged(ThrowingConsumer<Result> onStateChanged) {
         this.onStateChanged = onStateChanged;
+        return this;
+    }
+
+    public ImRequest setImageConverter(Function<BufferedImage, byte[]> imageConverter) {
+        this.imageConverter = imageConverter;
         return this;
     }
 
