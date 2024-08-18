@@ -4,32 +4,31 @@ import io.github.palexdev.imcache.utils.ImageUtils;
 
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.Objects;
 
 public class ImImage {
     //================================================================================
     // Properties
     //================================================================================
-    private final URL url;
+    private final String url;
     private final byte[] data;
 
     //================================================================================
     // Constructors
     //================================================================================
-    public ImImage(URL url, byte[] data) {
+    public ImImage(String url, byte[] data) {
         this.url = url;
         this.data = data;
     }
 
-    public static ImImage wrap(URL url, byte[] data) {
+    public static ImImage wrap(String url, byte[] data) {
         return new ImImage(url, data);
     }
 
     //================================================================================
     // Getters
     //================================================================================
-    public URL url() {return url;}
+    public String url() {return url;}
 
     public byte[] rawData() {
         return data;

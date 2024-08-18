@@ -7,8 +7,6 @@ import io.github.palexdev.imcache.utils.AsyncUtils;
 import io.github.palexdev.imcache.utils.OptionalWrapper;
 import io.github.palexdev.imcache.utils.ThrowingConsumer;
 
-import java.net.URI;
-import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +19,7 @@ public class ImRequest {
     //================================================================================
     private RequestState state = RequestState.READY;
     private String id;
-    private URL url;
+    private String url;
     private boolean overwrite = false;
     private final List<Transform> transforms = new ArrayList<>();
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
@@ -105,26 +103,9 @@ public class ImRequest {
 
     // Setup
 
-    public ImRequest load(URL url) {
+    public ImRequest load(String url) {
         this.url = url;
         return this;
-    }
-
-    public ImRequest load(URI uri) {
-        try {
-            load(uri.toURL());
-        } catch (Exception ex) {
-            throw new ImCacheException(
-                "Load operation failed: could not convert %s to an URL"
-                    .formatted(uri),
-                ex
-            );
-        }
-        return this;
-    }
-
-    public ImRequest load(String s) {
-        return load(URI.create(s));
     }
 
     public ImRequest transform(Transform transform) {
@@ -172,7 +153,7 @@ public class ImRequest {
     public String id() {
         if (id == null) {
             try {
-                id = UUID.nameUUIDFromBytes(url.toString().getBytes()).toString();
+                id = UUID.nameUUIDFromBytes(url.getBytes()).toString();
             } catch (Exception ex) {
                 throw new ImCacheException(
                     "Failed to generate id for request %s to a name"
@@ -184,7 +165,7 @@ public class ImRequest {
         return id;
     }
 
-    public URL url() {
+    public String url() {
         return url;
     }
 
