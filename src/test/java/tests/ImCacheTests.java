@@ -19,6 +19,7 @@ import org.testfx.framework.junit5.Start;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -63,11 +64,33 @@ public class ImCacheTests {
     }
 
     @Test
+    void testNullUrl() {
+        ImRequest request = ImCache.instance().request()
+            .load((URL) null)
+            .onStateChanged(r -> r.error().ifPresent(t -> System.out.println(t.getMessage())))
+            .execute();
+        assertSame(RequestState.FAILED, request.state());
+    }
+
+    @Test
+    void testInvalidUrl() {
+        ImRequest request = ImCache.instance().request()
+            .load("https://google.com")
+            .onStateChanged(r -> r.error().ifPresent(t -> System.out.println(t.getMessage())))
+            .execute();
+        assertSame(RequestState.FAILED, request.state());
+    }
+
+    @Test
     void testDownloadAndOpen(FxRobot robot) {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
-                .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
-                .execute();
+            .onStateChanged(r -> {
+                if (r.state() == RequestState.SUCCEEDED) {
+                    robot.interact(() -> Utils.setImage(view, r.unwrapOut().asStream()));
+                }
+            })
+            .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
         Utils.sleep(1000);
@@ -77,8 +100,12 @@ public class ImCacheTests {
     void testGif(FxRobot robot) {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadGif()
-                .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
-                .execute();
+            .onStateChanged(r -> {
+                if (r.state() == RequestState.SUCCEEDED) {
+                    robot.interact(() -> Utils.setImage(view, r.unwrapOut().asStream()));
+                }
+            })
+            .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
         Utils.sleep(2000);
@@ -110,8 +137,8 @@ public class ImCacheTests {
         ImRequest request = downloadImg().executeAsync();
         assertNotSame(RequestState.SUCCEEDED, request.state());
         Awaitility.await()
-                .atMost(5, TimeUnit.SECONDS)
-                .until(() -> request.state() == RequestState.SUCCEEDED);
+            .atMost(5, TimeUnit.SECONDS)
+            .until(() -> request.state() == RequestState.SUCCEEDED);
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(ImCache.instance().storage().contains(request));
     }
@@ -131,8 +158,8 @@ public class ImCacheTests {
 
         // Check image integrity
         ImCache.instance().storage()
-                .getImage(request)
-                .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+            .getImage(request)
+            .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
     }
 
     @Test
@@ -154,8 +181,8 @@ public class ImCacheTests {
 
         // Check image integrity
         ImCache.instance().storage()
-                .getImage(request)
-                .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+            .getImage(request)
+            .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
     }
 
     //================================================================================
@@ -163,13 +190,13 @@ public class ImCacheTests {
     //================================================================================
     private ImRequest downloadImg() {
         return ImCache.instance()
-                .request()
-                .load(IMAGE_URL);
+            .request()
+            .load(IMAGE_URL);
     }
 
     private ImRequest downloadGif() {
         return ImCache.instance()
-                .request()
-                .load(GIF_URL);
+            .request()
+            .load(GIF_URL);
     }
 }
