@@ -13,7 +13,7 @@ import java.net.URLConnection;
 import java.util.Optional;
 import java.util.UUID;
 
-public class Request {
+public class ImRequest {
     //================================================================================
     // Properties
     //================================================================================
@@ -23,12 +23,14 @@ public class Request {
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
     private ThrowingTriConsumer<Request, Image, Image> onSuccess = (r, src, out) -> {};
     private ThrowingConsumer<Request> onFail = r -> {};
+    private ThrowingTriConsumer<ImRequest, ImImage, ImImage> onSuccess = (r, src, out) -> {};
+    private ThrowingConsumer<ImRequest> onFail = r -> {};
     private boolean overwrite = false;
 
     //================================================================================
     // Constructors
     //================================================================================
-    Request() {}
+    ImRequest() {}
 
     //================================================================================
     // Overridden Methods
@@ -36,7 +38,7 @@ public class Request {
 
     @Override
     public String toString() {
-        return "Request{" +
+        return "ImRequest{" +
             "state=" + state +
             ", url=" + url +
             '}';
@@ -47,20 +49,20 @@ public class Request {
     //================================================================================
 
     // Execution
-    public Request execute() {
+    public ImRequest execute() {
         try {
             assert url != null;
             state = RequestState.STARTED;
 
-            Image src;
+            ImImage src;
             if (isOverwrite()) {
-                src = Image.wrap(url, Downloader.download(this));
+                src = ImImage.wrap(url, Downloader.download(this));
             } else {
                 src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
                         .ifPresent(i -> state = RequestState.CACHE_HIT)
-                        .orElseGet(() -> Image.wrap(url, Downloader.download(this)));
+                        .orElseGet(() -> ImImage.wrap(url, Downloader.download(this)));
             }
-            Image out = transform(src);
+            ImImage out = transform(src);
             ImCache.instance().store(this, src, out);
 
             if (state != RequestState.CACHE_HIT) state = RequestState.SUCCEEDED;
@@ -72,17 +74,17 @@ public class Request {
         return this;
     }
 
-    public Request executeAsync() {
+    public ImRequest executeAsync() {
         AsyncUtils.runAsync(this::execute);
         return this;
     }
 
-    protected Image transform(Image src) {
+    protected ImImage transform(ImImage src) {
         // TODO implement
         return src;
     }
 
-    protected void succeeded(Image src, Image out) {
+    protected void succeeded(ImImage src, ImImage out) {
         Optional.ofNullable(onSuccess).ifPresent(c -> {
             try {
                 c.accept(this, src, out);
@@ -113,12 +115,12 @@ public class Request {
 
     // Setup
 
-    public Request load(URL url) {
+    public ImRequest load(URL url) {
         this.url = url;
         return this;
     }
 
-    public Request load(URI uri) {
+    public ImRequest load(URI uri) {
         try {
             load(uri.toURL());
         } catch (Exception ex) {
@@ -131,26 +133,26 @@ public class Request {
         return this;
     }
 
-    public Request load(String s) {
+    public ImRequest load(String s) {
         return load(URI.create(s));
     }
 
-    public Request netConfig(ThrowingConsumer<URLConnection> netConfig) {
+    public ImRequest netConfig(ThrowingConsumer<URLConnection> netConfig) {
         this.netConfig = netConfig;
         return this;
     }
 
-    public Request onSuccess(ThrowingTriConsumer<Request, Image, Image> onSuccess) {
+    public ImRequest onSuccess(ThrowingTriConsumer<ImRequest, ImImage, ImImage> onSuccess) {
         this.onSuccess = onSuccess;
         return this;
     }
 
-    public Request onFail(ThrowingConsumer<Request> onFail) {
+    public ImRequest onFail(ThrowingConsumer<ImRequest> onFail) {
         this.onFail = onFail;
         return this;
     }
 
-    public Request overwrite(boolean overwrite) {
+    public ImRequest overwrite(boolean overwrite) {
         this.overwrite = overwrite;
         return this;
     }

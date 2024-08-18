@@ -3,8 +3,8 @@ package tests;
 import io.github.palexdev.imcache.cache.DiskCache;
 import io.github.palexdev.imcache.cache.MemoryCache;
 import io.github.palexdev.imcache.core.ImCache;
-import io.github.palexdev.imcache.core.Request;
-import io.github.palexdev.imcache.core.Request.RequestState;
+import io.github.palexdev.imcache.core.ImRequest;
+import io.github.palexdev.imcache.core.ImRequest.RequestState;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
@@ -57,7 +57,7 @@ public class ImCacheTests {
 
     @Test
     void testDownload() {
-        Request request = downloadImg().execute();
+        ImRequest request = downloadImg().execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
     }
@@ -65,7 +65,7 @@ public class ImCacheTests {
     @Test
     void testDownloadAndOpen(FxRobot robot) {
         ImageView view = Utils.setupStage();
-        Request request = downloadImg()
+        ImRequest request = downloadImg()
                 .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
                 .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
@@ -76,7 +76,7 @@ public class ImCacheTests {
     @Test
     void testGif(FxRobot robot) {
         ImageView view = Utils.setupStage();
-        Request request = downloadGif()
+        ImRequest request = downloadGif()
                 .onSuccess((r, src, out) -> robot.interact(() -> Utils.setImage(view, out.asStream())))
                 .execute();
         assertSame(RequestState.SUCCEEDED, request.state());
@@ -87,8 +87,8 @@ public class ImCacheTests {
     @Test
     void testCacheHitMiss() {
         // Download both
-        Request imgRequest = downloadImg().execute();
-        Request gifRequest = downloadGif().execute();
+        ImRequest imgRequest = downloadImg().execute();
+        ImRequest gifRequest = downloadGif().execute();
         assertSame(RequestState.SUCCEEDED, imgRequest.state());
         assertSame(RequestState.SUCCEEDED, gifRequest.state());
 
@@ -107,7 +107,7 @@ public class ImCacheTests {
 
     @Test
     void testAsync() {
-        Request request = downloadImg().executeAsync();
+        ImRequest request = downloadImg().executeAsync();
         assertNotSame(RequestState.SUCCEEDED, request.state());
         Awaitility.await()
                 .atMost(5, TimeUnit.SECONDS)
@@ -119,7 +119,7 @@ public class ImCacheTests {
     @Test
     void testScanDisk(FxRobot robot) {
         ImageView view = Utils.setupStage();
-        Request request = downloadImg().execute();
+        ImRequest request = downloadImg().execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertEquals(1, ImCache.instance().storage().size());
 
@@ -139,7 +139,7 @@ public class ImCacheTests {
     void testScanMemory(FxRobot robot) {
         ImageView view = Utils.setupStage();
         ImCache.instance().cacheConfig(MemoryCache::new);
-        Request request = downloadImg().execute();
+        ImRequest request = downloadImg().execute();
         assertSame(RequestState.SUCCEEDED, request.state());
         assertEquals(1, ImCache.instance().storage().size());
 
@@ -161,13 +161,13 @@ public class ImCacheTests {
     //================================================================================
     // Common Methods
     //================================================================================
-    private Request downloadImg() {
+    private ImRequest downloadImg() {
         return ImCache.instance()
                 .request()
                 .load(IMAGE_URL);
     }
 
-    private Request downloadGif() {
+    private ImRequest downloadGif() {
         return ImCache.instance()
                 .request()
                 .load(GIF_URL);

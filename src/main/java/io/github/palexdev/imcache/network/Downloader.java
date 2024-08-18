@@ -1,6 +1,6 @@
 package io.github.palexdev.imcache.network;
 
-import io.github.palexdev.imcache.core.Request;
+import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.utils.ImageUtils;
 
@@ -17,7 +17,7 @@ public class Downloader {
     //================================================================================
     // Static Methods
     //================================================================================
-    public static byte[] download(Request request) {
+    public static byte[] download(ImRequest request) {
         try {
             // Open connection
             URLConnection connection = request.url().openConnection();

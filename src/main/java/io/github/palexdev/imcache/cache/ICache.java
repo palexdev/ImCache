@@ -1,7 +1,7 @@
 package io.github.palexdev.imcache.cache;
 
-import io.github.palexdev.imcache.core.Request;
-import io.github.palexdev.imcache.core.Image;
+import io.github.palexdev.imcache.core.ImImage;
+import io.github.palexdev.imcache.core.ImRequest;
 
 import java.util.Optional;
 
@@ -11,29 +11,29 @@ public interface ICache<V> {
         return this;
     }
 
-    void store(String id, Image img);
+    void store(String id, ImImage img);
 
     boolean contains(String id);
 
-    default boolean contains(Request request) {
+    default boolean contains(ImRequest request) {
         return contains(request.id());
     }
 
     Optional<V> get(String id);
 
-    default Optional<V> get(Request request) {
+    default Optional<V> get(ImRequest request) {
         return get(request.id());
     }
 
-    Optional<Image> getImage(String id);
+    Optional<ImImage> getImage(String id);
 
-    default Optional<Image> getImage(Request request) {
+    default Optional<ImImage> getImage(ImRequest request) {
         return getImage(request.id());
     }
 
     boolean remove(String id);
 
-    default boolean remove(Request request) {
+    default boolean remove(ImRequest request) {
         return remove(request.id());
     }
 

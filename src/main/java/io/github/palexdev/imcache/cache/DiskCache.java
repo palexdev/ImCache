@@ -1,6 +1,6 @@
 package io.github.palexdev.imcache.cache;
 
-import io.github.palexdev.imcache.core.Image;
+import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.utils.FileUtils;
 
@@ -58,7 +58,7 @@ public class DiskCache extends Cache<File> {
     }
 
     @Override
-    public void store(String id, Image img) {
+    public void store(String id, ImImage img) {
         if (capacity == 0) return;
         if (size() == capacity) removeOldest();
         try {
@@ -86,13 +86,13 @@ public class DiskCache extends Cache<File> {
     }
 
     @Override
-    public Optional<Image> getImage(String id) {
+    public Optional<ImImage> getImage(String id) {
         Optional<File> opt = get(id);
         if (opt.isEmpty()) return Optional.empty();
         File file = opt.get();
         // TODO for now the url is lost once loading the file
         //      A solution could be to use a second cache/database on the disk to store [name -> url]
-        return Optional.of(Image.wrap(null, FileUtils.read(file)));
+        return Optional.of(ImImage.wrap(null, FileUtils.read(file)));
     }
 
     @Override

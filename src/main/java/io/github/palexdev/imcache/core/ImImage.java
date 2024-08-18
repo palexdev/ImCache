@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.Objects;
 
-public class Image {
+public class ImImage {
     //================================================================================
     // Properties
     //================================================================================
@@ -17,13 +17,13 @@ public class Image {
     //================================================================================
     // Constructors
     //================================================================================
-    public Image(URL url, byte[] data) {
+    public ImImage(URL url, byte[] data) {
         this.url = url;
         this.data = data;
     }
 
-    public static Image wrap(URL url, byte[] data) {
-        return new Image(url, data);
+    public static ImImage wrap(URL url, byte[] data) {
+        return new ImImage(url, data);
     }
 
     //================================================================================
@@ -50,7 +50,7 @@ public class Image {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Image image = (Image) o;
+        ImImage image = (ImImage) o;
         return Objects.equals(url, image.url);
     }
 
@@ -61,7 +61,7 @@ public class Image {
 
     @Override
     public String toString() {
-        return "Image{" +
+        return "ImImage{" +
             "url='" + url + '\'' +
             '}';
     }

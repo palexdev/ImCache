@@ -1,6 +1,6 @@
 package io.github.palexdev.imcache.cache;
 
-import io.github.palexdev.imcache.core.Image;
+import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.utils.FileUtils;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public class MemoryCache extends Cache<Image> {
+public class MemoryCache extends Cache<ImImage> {
     private Path scanPath = Paths.get(System.getProperty("user.home"), "im-cache");
 
     //================================================================================
@@ -24,9 +24,9 @@ public class MemoryCache extends Cache<Image> {
     public MemoryCache saveToDisk(Path savePath) {
         String id = null;
         try {
-            for (Map.Entry<String, Image> e : cache.entrySet()) {
+            for (Map.Entry<String, ImImage> e : cache.entrySet()) {
                 id = e.getKey();
-                Image img = e.getValue();
+                ImImage img = e.getValue();
                 Path path = savePath.resolve(id);
                 Files.write(path, img.rawData(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
             }
@@ -52,7 +52,7 @@ public class MemoryCache extends Cache<Image> {
                 .sorted(Comparator.comparingLong(File::lastModified))
                 .forEach(f -> {
                     if (size() == capacity) removeOldest();
-                    cache.put(f.getName(), Image.wrap(null, FileUtils.read(f)));
+                    cache.put(f.getName(), ImImage.wrap(null, FileUtils.read(f)));
                 });
         } catch (IOException ex) {
             throw new ImCacheException(
@@ -64,7 +64,7 @@ public class MemoryCache extends Cache<Image> {
     }
 
     @Override
-    public void store(String id, Image img) {
+    public void store(String id, ImImage img) {
         if (capacity == 0) return;
         if (size() == capacity) removeOldest();
         cache.put(id, img);
@@ -76,12 +76,12 @@ public class MemoryCache extends Cache<Image> {
     }
 
     @Override
-    public Optional<Image> get(String id) {
+    public Optional<ImImage> get(String id) {
         return Optional.ofNullable(cache.get(id));
     }
 
     @Override
-    public Optional<Image> getImage(String id) {
+    public Optional<ImImage> getImage(String id) {
         return get(id);
     }
 
