@@ -36,8 +36,6 @@ public class ImCache {
         return new ImRequest();
     }
 
-    // TODO should we cache the request too?
-    //      in that case there is no need to clean up when changing save path
     protected void store(ImRequest request, ImImage src, ImImage out) {
         String id = request.id();
         ImImage toSave = storeStrategy == StoreStrategy.SAVE_ORIGINAL ? src : out;

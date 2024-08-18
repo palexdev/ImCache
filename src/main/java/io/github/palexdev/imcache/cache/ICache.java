@@ -47,4 +47,8 @@ public interface ICache<V> extends Iterable<Map.Entry<String, V>> {
     int getCapacity();
 
     ICache<V> setCapacity(int capacity);
+
+    default Map<String, V> asMap() {
+        return Map.of();
+    }
 }

@@ -25,7 +25,7 @@ public abstract class Cache<V> implements ICache<V> {
     //================================================================================
     @Override
     public Iterator<Map.Entry<String, V>> iterator() {
-        return Collections.unmodifiableMap(cache).entrySet().iterator();
+        return asMap().entrySet().iterator();
     }
 
     @Override
@@ -36,6 +36,11 @@ public abstract class Cache<V> implements ICache<V> {
     @Override
     public int size() {
         return cache.size();
+    }
+
+    @Override
+    public Map<String, V> asMap() {
+        return Collections.unmodifiableMap(cache);
     }
 
     //================================================================================
