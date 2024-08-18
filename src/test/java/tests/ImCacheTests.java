@@ -19,7 +19,6 @@ import org.testfx.framework.junit5.Start;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
@@ -66,8 +65,8 @@ public class ImCacheTests {
     @Test
     void testNullUrl() {
         ImRequest request = ImCache.instance().request()
-            .load((URL) null)
-            .onStateChanged(r -> r.error().ifPresent(t -> System.out.println(t.getMessage())))
+            .load(null)
+            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
     }
@@ -75,8 +74,17 @@ public class ImCacheTests {
     @Test
     void testInvalidUrl() {
         ImRequest request = ImCache.instance().request()
+            .load("This is an invalid url")
+            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
+            .execute();
+        assertSame(RequestState.FAILED, request.state());
+    }
+
+    @Test
+    void testInvalidResource() {
+        ImRequest request = ImCache.instance().request()
             .load("https://google.com")
-            .onStateChanged(r -> r.error().ifPresent(t -> System.out.println(t.getMessage())))
+            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
     }
