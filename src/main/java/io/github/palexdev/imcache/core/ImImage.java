@@ -27,13 +27,8 @@ public class ImImage {
     }
 
     //================================================================================
-    // Getters
+    // Methods
     //================================================================================
-    public String url() {return url;}
-
-    public byte[] rawData() {
-        return data;
-    }
 
     public BufferedImage asImage() {
         return ImageUtils.toImage(data);
@@ -45,6 +40,16 @@ public class ImImage {
 
     public <T> T as(Function<byte[], T> converter) {
         return converter.apply(data);
+    }
+
+    //================================================================================
+    // Getters
+    //================================================================================
+
+    public String url() {return url;}
+
+    public byte[] rawData() {
+        return data;
     }
 
     //================================================================================
