@@ -2,6 +2,7 @@ package io.github.palexdev.imcache.core;
 
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.network.Downloader;
+import io.github.palexdev.imcache.transforms.Transform;
 import io.github.palexdev.imcache.utils.AsyncUtils;
 import io.github.palexdev.imcache.utils.OptionalWrapper;
 import io.github.palexdev.imcache.utils.ThrowingConsumer;
@@ -9,6 +10,8 @@ import io.github.palexdev.imcache.utils.ThrowingConsumer;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -19,9 +22,10 @@ public class ImRequest {
     private RequestState state = RequestState.READY;
     private String id;
     private URL url;
+    private boolean overwrite = false;
+    private final List<Transform> transforms = new ArrayList<>();
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
     private ThrowingConsumer<Result> onStateChanged = r -> {};
-    private boolean overwrite = false;
 
     //================================================================================
     // Constructors
@@ -89,8 +93,14 @@ public class ImRequest {
     }
 
     protected ImImage transform(ImImage src) {
+        if (transforms.isEmpty()) return src;
         // TODO implement
-        return src;
+        throw new UnsupportedOperationException("Transforms are not yet implemented");
+        /*ImImage out = src;
+        for (Transform transform : transforms) {
+            out = transform.transform(out);
+        }
+        return out;*/
     }
 
     // Setup
@@ -117,6 +127,16 @@ public class ImRequest {
         return load(URI.create(s));
     }
 
+    public ImRequest transform(Transform transform) {
+        transforms.add(transform);
+        return this;
+    }
+
+    public ImRequest overwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+        return this;
+    }
+
     public ImRequest netConfig(ThrowingConsumer<URLConnection> netConfig) {
         this.netConfig = netConfig;
         return this;
@@ -124,11 +144,6 @@ public class ImRequest {
 
     public ImRequest onStateChanged(ThrowingConsumer<Result> onStateChanged) {
         this.onStateChanged = onStateChanged;
-        return this;
-    }
-
-    public ImRequest overwrite(boolean overwrite) {
-        this.overwrite = overwrite;
         return this;
     }
 
