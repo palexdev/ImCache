@@ -5,13 +5,12 @@ import io.github.palexdev.imcache.network.Downloader;
 import io.github.palexdev.imcache.utils.AsyncUtils;
 import io.github.palexdev.imcache.utils.OptionalWrapper;
 import io.github.palexdev.imcache.utils.ThrowingConsumer;
-import io.github.palexdev.imcache.utils.ThrowingTriConsumer;
 
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ImRequest {
     //================================================================================
@@ -21,10 +20,7 @@ public class ImRequest {
     private String id;
     private URL url;
     private ThrowingConsumer<URLConnection> netConfig = c -> {};
-    private ThrowingTriConsumer<Request, Image, Image> onSuccess = (r, src, out) -> {};
-    private ThrowingConsumer<Request> onFail = r -> {};
-    private ThrowingTriConsumer<ImRequest, ImImage, ImImage> onSuccess = (r, src, out) -> {};
-    private ThrowingConsumer<ImRequest> onFail = r -> {};
+    private ThrowingConsumer<Result> onStateChanged = r -> {};
     private boolean overwrite = false;
 
     //================================================================================
@@ -50,26 +46,39 @@ public class ImRequest {
 
     // Execution
     public ImRequest execute() {
+        // Result data
+        RequestState state = RequestState.READY;
+        ImImage src = null;
+        ImImage out = null;
+        Result result = new Result(this);
+        AtomicBoolean cacheHit = new AtomicBoolean(false);
         try {
-            assert url != null;
-            state = RequestState.STARTED;
+            if (url == null) {
+                throw new ImCacheException("Could not execute request %s because url is null".formatted(this));
+            }
+            // Update and notify request started
+            updateState(RequestState.STARTED, result);
 
-            ImImage src;
             if (isOverwrite()) {
                 src = ImImage.wrap(url, Downloader.download(this));
             } else {
                 src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
-                        .ifPresent(i -> state = RequestState.CACHE_HIT)
-                        .orElseGet(() -> ImImage.wrap(url, Downloader.download(this)));
+                    .ifPresent(i -> cacheHit.set(true))
+                    .orElseGet(() -> ImImage.wrap(url, Downloader.download(this)));
             }
-            ImImage out = transform(src);
+            out = transform(src);
             ImCache.instance().store(this, src, out);
 
-            if (state != RequestState.CACHE_HIT) state = RequestState.SUCCEEDED;
-            succeeded(src, out);
+            // Determine specific success state, either cache hit or simple success
+            // Then build the result
+            state = cacheHit.get() ? RequestState.CACHE_HIT : RequestState.SUCCEEDED;
+            result = new Result(this, src, out, null);
         } catch (Exception ex) {
             state = RequestState.FAILED;
-            failed(ex);
+            result = new Result(this, src, out, ex);
+        } finally {
+            // At the end of all operations update the state
+            updateState(state, result);
         }
         return this;
     }
@@ -82,35 +91,6 @@ public class ImRequest {
     protected ImImage transform(ImImage src) {
         // TODO implement
         return src;
-    }
-
-    protected void succeeded(ImImage src, ImImage out) {
-        Optional.ofNullable(onSuccess).ifPresent(c -> {
-            try {
-                c.accept(this, src, out);
-            } catch (Exception ex) {
-                throw new ImCacheException(
-                    "Failed to execute onSuccess action for request %s"
-                        .formatted(this),
-                    ex
-                );
-            }
-        });
-    }
-
-    protected void failed(Throwable t) {
-        Optional.ofNullable(onFail).ifPresent(c -> {
-            try {
-                c.accept(this);
-            } catch (Exception ex) {
-                throw new ImCacheException(
-                    "Failed to execute onFail action for request %s"
-                        .formatted(this),
-                    ex
-                );
-            }
-        });
-        t.printStackTrace();
     }
 
     // Setup
@@ -142,13 +122,8 @@ public class ImRequest {
         return this;
     }
 
-    public ImRequest onSuccess(ThrowingTriConsumer<ImRequest, ImImage, ImImage> onSuccess) {
-        this.onSuccess = onSuccess;
-        return this;
-    }
-
-    public ImRequest onFail(ThrowingConsumer<ImRequest> onFail) {
-        this.onFail = onFail;
+    public ImRequest onStateChanged(ThrowingConsumer<Result> onStateChanged) {
+        this.onStateChanged = onStateChanged;
         return this;
     }
 
@@ -158,10 +133,25 @@ public class ImRequest {
     }
 
     //================================================================================
-    // Getters
+    // Getters/Setters
     //================================================================================
     public RequestState state() {
         return state;
+    }
+
+    public void updateState(RequestState state, Result result) {
+        this.state = state;
+        if (onStateChanged != null) {
+            try {
+                onStateChanged.accept(result);
+            } catch (Exception ex) {
+                throw new ImCacheException(
+                    "Failed to execute onStateChanged callback for request %s"
+                        .formatted(this),
+                    ex
+                );
+            }
+        }
     }
 
     public String id() {
@@ -200,5 +190,46 @@ public class ImRequest {
         FAILED,
         SUCCEEDED,
         CACHE_HIT,
+    }
+
+    @SuppressWarnings("OptionalGetWithoutIsPresent")
+    public record Result(
+        ImRequest request,
+        OptionalWrapper<ImImage> src,
+        OptionalWrapper<ImImage> out,
+        OptionalWrapper<Throwable> error
+    ) {
+
+        private Result(ImRequest request) {
+            this(request, null, null, (Throwable) null);
+        }
+
+        public Result(ImRequest request, ImImage src, ImImage out, Throwable error) {
+            this(request,
+                OptionalWrapper.ofNullable(src),
+                OptionalWrapper.ofNullable(out),
+                OptionalWrapper.ofNullable(error)
+            );
+        }
+
+        public ImImage unwrapSrc() {
+            return src.optional().get();
+        }
+
+        public ImImage unwrapOut() {
+            return out.optional().get();
+        }
+
+        public Throwable unwrapError() {
+            return error.optional().get();
+        }
+
+        public RequestState state() {
+            return request.state();
+        }
+
+        public boolean isEmpty() {
+            return src == null || out == null;
+        }
     }
 }
