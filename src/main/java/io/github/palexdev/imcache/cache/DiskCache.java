@@ -2,14 +2,13 @@ package io.github.palexdev.imcache.cache;
 
 import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.utils.FileUtils;
+import io.github.palexdev.imcache.utils.ImageUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -28,10 +27,10 @@ public class DiskCache extends Cache<File> {
         if (!done) {
             throw new ImCacheException(
                 "Failed to delete file %s"
-                .formatted(file)
+                    .formatted(file)
             );
         }
-        return done;
+        return true;
     }
 
     //================================================================================
@@ -62,10 +61,11 @@ public class DiskCache extends Cache<File> {
         if (capacity == 0) return;
         if (size() == capacity) removeOldest();
         try {
-            Path file = savePath.resolve(id);
-            Files.createDirectories(file.getParent());
-            Files.write(file, img.rawData(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-            cache.put(id, file.toFile());
+            Path path = savePath.resolve(id);
+            File file = path.toFile();
+            Files.createDirectories(path.getParent());
+            ImageUtils.serialize(img, file);
+            cache.put(id, file);
         } catch (Exception ex) {
             throw new ImCacheException(
                 "Failed to store image %s in cache"
@@ -87,12 +87,19 @@ public class DiskCache extends Cache<File> {
 
     @Override
     public Optional<ImImage> getImage(String id) {
+        File file = null;
         Optional<File> opt = get(id);
         if (opt.isEmpty()) return Optional.empty();
-        File file = opt.get();
-        // TODO for now the url is lost once loading the file
-        //      A solution could be to use a second cache/database on the disk to store [name -> url]
-        return Optional.of(ImImage.wrap(null, FileUtils.read(file)));
+        try {
+            file = opt.get();
+            return Optional.of(ImageUtils.deserialize(file));
+        } catch (Exception ex) {
+            throw new ImCacheException(
+                "Failed to deserialize image from file %s because: %s"
+                    .formatted(file.getName(), ex.getMessage()),
+                ex
+            );
+        }
     }
 
     @Override

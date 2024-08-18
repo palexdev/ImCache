@@ -1,15 +1,17 @@
 package io.github.palexdev.imcache.utils;
 
+import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 public class ImageUtils {
+    //================================================================================
+    // Static Properties
+    //================================================================================
+    public static final byte FILE_FORMAT_VERSION = 1;
 
     //================================================================================
     // Constructors
@@ -19,6 +21,41 @@ public class ImageUtils {
     //================================================================================
     // Static Methods
     //================================================================================
+    public static void serialize(ImImage img, File file) throws IOException {
+        try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
+            // Write header
+            dos.writeByte(FILE_FORMAT_VERSION);  // Format version
+            dos.writeInt(img.url().length());    // URL length
+            dos.writeInt(img.rawData().length);  // Data length
+
+            // Write data
+            dos.writeBytes(img.url());           // Request URL
+            dos.write(img.rawData());            // Image data
+        }
+    }
+
+    public static ImImage deserialize(File file) throws IOException {
+        try (DataInputStream dis = new DataInputStream(new FileInputStream(file))) {
+            // Read the header
+            byte version = dis.readByte();       // Check compatible version
+            if (version != FILE_FORMAT_VERSION)
+                throw new IOException("Invalid format version %s".formatted(version));
+
+            int urlLength = dis.readInt();       // Read URL length
+            int dataLength = dis.readInt();      // Read data length
+
+            // Read data and build ImImage object
+            byte[] urlBytes = new byte[urlLength];
+            dis.readFully(urlBytes);
+            String url = new String(urlBytes);   // Convert URL bytes to string
+
+            byte[] rawData = new byte[dataLength];
+            dis.readFully(rawData);
+
+            return ImImage.wrap(url, rawData);
+        }
+    }
+
     public static byte[] toBytes(String format, Object data) {
         try {
             return switch (data) {

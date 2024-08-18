@@ -2,18 +2,16 @@ package io.github.palexdev.imcache.cache;
 
 import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.utils.FileUtils;
+import io.github.palexdev.imcache.utils.ImageUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 public class MemoryCache extends Cache<ImImage> {
     private Path scanPath = Paths.get(System.getProperty("user.home"), "im-cache");
@@ -28,7 +26,7 @@ public class MemoryCache extends Cache<ImImage> {
                 id = e.getKey();
                 ImImage img = e.getValue();
                 Path path = savePath.resolve(id);
-                Files.write(path, img.rawData(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+                ImageUtils.serialize(img, path.toFile());
             }
         } catch (IOException ex) {
             throw new ImCacheException(
@@ -46,14 +44,14 @@ public class MemoryCache extends Cache<ImImage> {
     @Override
     public MemoryCache scan() {
         if (scanPath == null || capacity == 0) return this;
-        try (Stream<Path> stream = Files.list(scanPath)) {
-            stream.filter(f -> !Files.isDirectory(f))
-                .map(Path::toFile)
-                .sorted(Comparator.comparingLong(File::lastModified))
-                .forEach(f -> {
-                    if (size() == capacity) removeOldest();
-                    cache.put(f.getName(), ImImage.wrap(null, FileUtils.read(f)));
-                });
+        try {
+            File[] files = scanPath.toFile().listFiles();
+            if (files == null || files.length == 0) return this;
+            Arrays.sort(files, Comparator.comparing(File::lastModified));
+            for (File file : files) {
+                if (size() == capacity) removeOldest();
+                cache.put(file.getName(), ImageUtils.deserialize(file));
+            }
         } catch (IOException ex) {
             throw new ImCacheException(
                 "Failed to re-load cached images to memory during scan",
