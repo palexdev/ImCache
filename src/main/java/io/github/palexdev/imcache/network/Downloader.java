@@ -6,9 +6,7 @@ import io.github.palexdev.imcache.utils.ImageUtils;
 import io.github.palexdev.imcache.utils.MediaType;
 
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
+import java.net.*;
 
 public class Downloader {
 
@@ -23,7 +21,7 @@ public class Downloader {
     public static byte[] download(ImRequest request) {
         try {
             // Open connection
-            URL url = new URI(request.url()).toURL();
+            URL url = toURL(request.url());
             URLConnection connection = url.openConnection();
             request.getNetConfig().accept(connection);
             verify(connection);
@@ -39,6 +37,10 @@ public class Downloader {
                 ex
             );
         }
+    }
+
+    public static URL toURL(String url) throws URISyntaxException, MalformedURLException {
+        return new URI(url).toURL();
     }
 
     private static void verify(URLConnection connection) throws ImCacheException {
