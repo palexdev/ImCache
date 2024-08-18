@@ -7,6 +7,7 @@ import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.core.ImRequest.RequestState;
 import io.github.palexdev.imcache.network.Downloader;
+import io.github.palexdev.imcache.transforms.*;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
@@ -19,6 +20,7 @@ import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -211,6 +213,298 @@ public class ImCacheTests {
             assertDoesNotThrow(() -> Downloader.toURL(img.get().url()));
         }
         Utils.sleep(500);
+    }
+
+    @Test
+    void testCenterCrop(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new CenterCrop(200, 200))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testCircleCrop(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Resize(400, 400)) // Too big to show
+            .transform(new CircleCrop(Color.WHITE, Color.RED, 5.0f))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(1000);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testResize(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Resize(200, 200))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testResize2(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Resize(400, 400))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testRotate(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Rotate(45))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testFlipVertical(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Flip(Flip.FlipOrientation.VERTICAL))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testFlipHorizontal(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Flip(Flip.FlipOrientation.HORIZONTAL))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testFit(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Fit(360, 240))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testPad(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Pad(360, 240, Color.RED))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testGrayscale(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Grayscale())
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testBrightness(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Brightness(100))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testBrightness2(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Brightness(-100))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testContrast(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Contrast(1.2f))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testContrast2(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Contrast(0.8f))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testAspectRatioCrop(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Resize(300, 300))
+            .transform(new AspectRatioCrop(16, 9))
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testGaussianBlur(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new GaussianBlur())
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testVignette(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Resize(360, 360))
+            .transform(new Vignette())
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testSketch(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new Sketch())
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
+    }
+
+    @Test
+    void testAddText(FxRobot robot) {
+        ImageView view = Utils.setupStage();
+        ImRequest request = downloadImg()
+            .transform(new AddText("Hello\nWorld!", AddText.Position.CENTER)
+                .setFont(new Font(null, Font.BOLD, 36))
+                .setYOffset(-30)
+                .setXOffset(100)
+            )
+            .onStateChanged(r -> {
+                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+                Utils.sleep(500);
+            })
+            .execute();
+        assertSame(RequestState.SUCCEEDED, request.state());
     }
 
     //================================================================================
