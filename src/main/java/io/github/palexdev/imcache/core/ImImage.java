@@ -5,6 +5,7 @@ import io.github.palexdev.imcache.utils.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class ImImage {
     //================================================================================
@@ -40,6 +41,10 @@ public class ImImage {
 
     public InputStream asStream() {
         return ImageUtils.toStream(null, data);
+    }
+
+    public <T> T as(Function<byte[], T> converter) {
+        return converter.apply(data);
     }
 
     //================================================================================
