@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(ApplicationExtension.class)
 public class ImCacheTests {
     public static final String IMAGE_URL = "https://cdn.pixabay.com/photo/2024/04/09/03/04/ai-generated-8684869_960_720.jpg";
-    public static final String GIF_URL = "https://camo.githubusercontent.com/7de37139d0b4c1ce40865e799b446c0e963a3dd8fb68d239707237c40604fa3d/68747470733a2f2f63646e2e6472696262626c652e636f6d2f75736572732f3733303730332f73637265656e73686f74732f363538313234332f6176656e746f2e676966";
+    public static final String GIF_URL = "https://media3.giphy.com/media/MT5UUV1d4CXE2A37Dg/200w.gif?cid=6c09b952atir21ebxac41fydue6xyxfrnena2lzmsr7a5n7p&ep=v1_gifs_search&rid=200w.gif&ct=g";
     private static Path TEMP_DIR;
 
     @BeforeEach
