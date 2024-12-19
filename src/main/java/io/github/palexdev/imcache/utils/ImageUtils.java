@@ -23,13 +23,14 @@ public class ImageUtils {
     //================================================================================
     public static void serialize(ImImage img, File file) throws IOException {
         try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
+            String url = img.url().toString();
             // Write header
             dos.writeByte(FILE_FORMAT_VERSION);  // Format version
-            dos.writeInt(img.url().length());    // URL length
+            dos.writeInt(url.length());          // URL length
             dos.writeInt(img.rawData().length);  // Data length
 
             // Write data
-            dos.writeBytes(img.url());           // Request URL
+            dos.writeBytes(url);                 // Request URL
             dos.write(img.rawData());            // Image data
         }
     }
@@ -52,7 +53,7 @@ public class ImageUtils {
             byte[] rawData = new byte[dataLength];
             dis.readFully(rawData);
 
-            return ImImage.wrap(url, rawData);
+            return ImImage.wrap(URLHandler.toURL(url).orElse(null), rawData);
         }
     }
 

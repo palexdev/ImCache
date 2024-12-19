@@ -40,7 +40,6 @@ public class ImCache {
         String id = request.id();
         ImImage toSave = storeStrategy == StoreStrategy.SAVE_ORIGINAL ? src : out;
         cache.store(id, toSave);
-
     }
 
     public void clear() {

@@ -1,14 +1,12 @@
 package io.github.palexdev.imcache.core;
 
+import io.github.palexdev.imcache.cache.Identifiable;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.network.Downloader;
 import io.github.palexdev.imcache.transforms.Transform;
-import io.github.palexdev.imcache.utils.AsyncUtils;
-import io.github.palexdev.imcache.utils.ImageUtils;
-import io.github.palexdev.imcache.utils.OptionalWrapper;
-import io.github.palexdev.imcache.utils.ThrowingConsumer;
+import io.github.palexdev.imcache.utils.*;
 
 import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +14,16 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-public class ImRequest {
+public class ImRequest implements Identifiable {
     //================================================================================
     // Properties
     //================================================================================
     private RequestState state = RequestState.READY;
     private String id;
-    private String url;
+    private URL url;
     private boolean overwrite = false;
     private final List<Transform> transforms = new ArrayList<>();
-    private ThrowingConsumer<URLConnection> netConfig = c -> {};
+    private ThrowingConsumer<URLConnection> urlConfig = c -> {};
     private ThrowingConsumer<Result> onStateChanged = r -> {};
     private Function<BufferedImage, byte[]> imageConverter = i -> ImageUtils.toBytes("png", i);
 
@@ -37,6 +35,21 @@ public class ImRequest {
     //================================================================================
     // Overridden Methods
     //================================================================================
+
+    public String id() {
+        if (id == null) {
+            try {
+                id = UUID.nameUUIDFromBytes(url.toString().getBytes()).toString();
+            } catch (Exception ex) {
+                throw new ImCacheException(
+                    "Failed to generate id for request %s to a name"
+                        .formatted(this),
+                    ex
+                );
+            }
+        }
+        return id;
+    }
 
     @Override
     public String toString() {
@@ -66,11 +79,11 @@ public class ImRequest {
             updateState(RequestState.STARTED, result);
 
             if (isOverwrite()) {
-                src = ImImage.wrap(url, Downloader.download(this));
+                src = ImImage.wrap(url, URLHandler.resolve(this));
             } else {
                 src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
                     .ifPresent(i -> cacheHit.set(true))
-                    .orElseGet(() -> ImImage.wrap(url, Downloader.download(this)));
+                    .orElseGet(() -> ImImage.wrap(url, URLHandler.resolve(this)));
             }
             out = transform(src);
             ImCache.instance().store(this, src, out);
@@ -105,8 +118,14 @@ public class ImRequest {
 
     // Setup
 
-    public ImRequest load(String url) {
+    // TODO enforce url in constructor
+    public ImRequest load(URL url) {
         this.url = url;
+        return this;
+    }
+
+    public ImRequest load(String url) {
+        this.url = URLHandler.toURL(url).orElse(null);
         return this;
     }
 
@@ -120,8 +139,8 @@ public class ImRequest {
         return this;
     }
 
-    public ImRequest netConfig(ThrowingConsumer<URLConnection> netConfig) {
-        this.netConfig = netConfig;
+    public ImRequest urlConfig(ThrowingConsumer<URLConnection> urlConfig) {
+        this.urlConfig = urlConfig;
         return this;
     }
 
@@ -157,27 +176,12 @@ public class ImRequest {
         }
     }
 
-    public String id() {
-        if (id == null) {
-            try {
-                id = UUID.nameUUIDFromBytes(url.getBytes()).toString();
-            } catch (Exception ex) {
-                throw new ImCacheException(
-                    "Failed to generate id for request %s to a name"
-                        .formatted(this),
-                    ex
-                );
-            }
-        }
-        return id;
-    }
-
-    public String url() {
+    public URL url() {
         return url;
     }
 
-    public ThrowingConsumer<URLConnection> getNetConfig() {
-        return netConfig;
+    public ThrowingConsumer<URLConnection> getUrlConfig() {
+        return urlConfig;
     }
 
     public boolean isOverwrite() {
