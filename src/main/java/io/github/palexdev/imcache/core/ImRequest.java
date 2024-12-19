@@ -1,10 +1,5 @@
 package io.github.palexdev.imcache.core;
 
-import io.github.palexdev.imcache.cache.Identifiable;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.transforms.Transform;
-import io.github.palexdev.imcache.utils.*;
-
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,13 +9,18 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
+import io.github.palexdev.imcache.cache.Identifiable;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+import io.github.palexdev.imcache.transforms.Transform;
+import io.github.palexdev.imcache.utils.*;
+
 public class ImRequest implements Identifiable {
     //================================================================================
     // Properties
     //================================================================================
     private RequestState state = RequestState.READY;
     private String id;
-    private URL url;
+    private final URL url;
     private boolean overwrite = false;
     private final List<Transform> transforms = new ArrayList<>();
     private ThrowingConsumer<URLConnection> urlConfig = c -> {};
@@ -30,7 +30,9 @@ public class ImRequest implements Identifiable {
     //================================================================================
     // Constructors
     //================================================================================
-    ImRequest() {}
+    public ImRequest(URL url) {
+        this.url = url;
+    }
 
     //================================================================================
     // Overridden Methods
@@ -117,18 +119,6 @@ public class ImRequest implements Identifiable {
     }
 
     // Setup
-
-    // TODO enforce url in constructor
-    public ImRequest load(URL url) {
-        this.url = url;
-        return this;
-    }
-
-    public ImRequest load(String url) {
-        this.url = URLHandler.toURL(url).orElse(null);
-        return this;
-    }
-
     public ImRequest transform(Transform transform) {
         transforms.add(transform);
         return this;

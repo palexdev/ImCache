@@ -1,13 +1,12 @@
 package io.github.palexdev.imcache.core;
 
-import io.github.palexdev.imcache.utils.ImageUtils;
-
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
-import java.net.URI;
 import java.net.URL;
 import java.util.Objects;
 import java.util.function.Function;
+
+import io.github.palexdev.imcache.utils.ImageUtils;
 
 public class ImImage {
     //================================================================================

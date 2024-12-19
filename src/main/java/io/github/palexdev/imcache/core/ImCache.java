@@ -1,10 +1,14 @@
 package io.github.palexdev.imcache.core;
 
-import io.github.palexdev.imcache.cache.ICache;
-import io.github.palexdev.imcache.cache.MemoryCache;
-
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Supplier;
+
+import io.github.palexdev.imcache.cache.ICache;
+import io.github.palexdev.imcache.cache.MemoryCache;
+import io.github.palexdev.imcache.utils.URLHandler;
 
 public class ImCache {
     //================================================================================
@@ -32,8 +36,20 @@ public class ImCache {
     //================================================================================
 
     // Execution
-    public ImRequest request() {
-        return new ImRequest();
+    public ImRequest request(URL url) {
+        return new ImRequest(url);
+    }
+
+    public ImRequest request(String s) {
+        return request(URLHandler.toURL(s).orElse(null));
+    }
+
+    public ImRequest request(File file) {
+        return request(URLHandler.toURL(file.getAbsolutePath()).orElse(null));
+    }
+
+    public ImRequest request(Path path) {
+        return request(path.toFile());
     }
 
     protected void store(ImRequest request, ImImage src, ImImage out) {
