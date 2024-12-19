@@ -1,5 +1,15 @@
 package tests;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 import io.github.palexdev.imcache.cache.DiskCache;
 import io.github.palexdev.imcache.cache.MemoryCache;
 import io.github.palexdev.imcache.core.ImCache;
@@ -19,19 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.testfx.api.FxRobot;
 import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
-
-import java.awt.*;
-import java.awt.desktop.OpenURIHandler;
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.rmi.server.UID;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -74,8 +71,8 @@ public class ImCacheTests {
 
     @Test
     void testNullUrl() {
-        ImRequest request = ImCache.instance().request()
-            .load((URL) null)
+        ImRequest request = ImCache.instance()
+            .request((URL) null)
             .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
@@ -83,8 +80,8 @@ public class ImCacheTests {
 
     @Test
     void testInvalidUrl() {
-        ImRequest request = ImCache.instance().request()
-            .load("This is an invalid url")
+        ImRequest request = ImCache.instance()
+            .request("This is an invalid url")
             .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
@@ -92,8 +89,8 @@ public class ImCacheTests {
 
     @Test
     void testInvalidResource() {
-        ImRequest request = ImCache.instance().request()
-            .load("https://google.com")
+        ImRequest request = ImCache.instance()
+            .request("https://google.com")
             .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
@@ -232,8 +229,7 @@ public class ImCacheTests {
 
         // Local request
         ImRequest req = ImCache.instance()
-            .request()
-            .load(saved.toUri().toURL())
+            .request(saved)
             .execute();
         assertSame(RequestState.SUCCEEDED, req.state());
         assertTrue(ImCache.instance().storage().contains(req));
@@ -547,14 +543,10 @@ public class ImCacheTests {
     // Common Methods
     //================================================================================
     private ImRequest downloadImg() {
-        return ImCache.instance()
-            .request()
-            .load(IMAGE_URL);
+        return ImCache.instance().request(IMAGE_URL);
     }
 
     private ImRequest downloadGif() {
-        return ImCache.instance()
-            .request()
-            .load(GIF_URL);
+        return ImCache.instance().request(GIF_URL);
     }
 }
