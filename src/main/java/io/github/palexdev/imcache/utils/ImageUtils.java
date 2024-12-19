@@ -4,6 +4,7 @@ import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 
 import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
 import java.io.*;
 
@@ -110,7 +111,8 @@ public class ImageUtils {
                 case BufferedImage bi -> {
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
                     ImageIO.write(bi, format, baos);
-                    if (baos.size() == 0) throw new ImCacheException("Conversion from BufferedImage to InputStream failed");
+                    if (baos.size() == 0)
+                        throw new ImCacheException("Conversion from BufferedImage to InputStream failed");
                     yield new ByteArrayInputStream(toBytes(format, data));
                 }
                 case null, default -> InputStream.nullInputStream();

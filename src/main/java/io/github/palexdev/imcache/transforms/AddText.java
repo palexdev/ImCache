@@ -153,21 +153,20 @@ public class AddText implements Transform {
             public int[] computePositions(int imgW, int imgH, int textW, int textH) {
                 return new int[]{imgW - textW, imgH - textH + textH / 2};
             }
-        }
-        ;
+        };
 
         public abstract int[] computePositions(int imgW, int imgH, int textW, int textH);
 
         public boolean isVerticalCenter() {
             return this == Position.TOP_CENTER ||
-                this == Position.CENTER ||
-                this == Position.BOTTOM_CENTER;
+                   this == Position.CENTER ||
+                   this == Position.BOTTOM_CENTER;
         }
 
         public boolean isVerticalRight() {
             return this == Position.TOP_RIGHT ||
-                this == Position.CENTER_RIGHT ||
-                this == Position.BOTTOM_RIGHT;
+                   this == Position.CENTER_RIGHT ||
+                   this == Position.BOTTOM_RIGHT;
         }
     }
 }
