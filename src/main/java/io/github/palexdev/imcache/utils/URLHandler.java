@@ -1,30 +1,29 @@
-package io.github.palexdev.imcache.network;
+package io.github.palexdev.imcache.utils;
 
-import io.github.palexdev.imcache.core.ImRequest;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.utils.ImageUtils;
-import io.github.palexdev.imcache.utils.MediaType;
 
 import java.io.InputStream;
 import java.net.*;
+import java.util.Optional;
 
-public class Downloader {
+import io.github.palexdev.imcache.core.ImRequest;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+
+public class URLHandler {
 
     //================================================================================
     // Constructors
     //================================================================================
-    private Downloader() {}
+    private URLHandler() {}
 
     //================================================================================
     // Static Methods
     //================================================================================
-    public static byte[] download(ImRequest request) {
+    public static byte[] resolve(URL url, ThrowingConsumer<URLConnection> urlConfig) {
         try {
             // Open connection
-            URL url = toURL(request.url());
             URLConnection connection = url.openConnection();
-            request.getNetConfig().accept(connection);
             verify(connection);
+            if (urlConfig != null) urlConfig.accept(connection);
 
             // Transfer to memory
             try (InputStream is = connection.getInputStream()) {
@@ -32,15 +31,23 @@ public class Downloader {
             }
         } catch (Exception ex) {
             throw new ImCacheException(
-                "Failed to download image for request %s because: %s"
-                    .formatted(request, ex.getMessage()),
+                "Failed to resolve url %s because: %s"
+                    .formatted(url, ex.getMessage()),
                 ex
             );
         }
     }
 
-    public static URL toURL(String url) throws URISyntaxException, MalformedURLException {
-        return new URI(url).toURL();
+    public static byte[] resolve(ImRequest request) {
+        return resolve(request.url(), request.getUrlConfig());
+    }
+
+    public static Optional<URL> toURL(String url) {
+        try {
+            return Optional.of(URI.create(url).toURL());
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
     }
 
     private static void verify(URLConnection connection) throws ImCacheException {

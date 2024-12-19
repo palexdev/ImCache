@@ -5,6 +5,10 @@ public class ImCacheException extends RuntimeException {
     //================================================================================
     // Constructors
     //================================================================================
+    public ImCacheException(Throwable cause) {
+        super(cause);
+    }
+
     public ImCacheException(String message) {
         super(message);
     }
