@@ -12,9 +12,6 @@ module ImCache {
     // Exceptions Package
     exports io.github.palexdev.imcache.exceptions;
 
-    // Network Package
-    exports io.github.palexdev.imcache.network;
-
     // Transforms Package
     exports io.github.palexdev.imcache.transforms;
 

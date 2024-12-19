@@ -6,8 +6,8 @@ import io.github.palexdev.imcache.core.ImCache;
 import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.core.ImRequest.RequestState;
-import io.github.palexdev.imcache.network.Downloader;
 import io.github.palexdev.imcache.transforms.*;
+import io.github.palexdev.imcache.utils.URLHandler;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
@@ -21,10 +21,14 @@ import org.testfx.framework.junit5.ApplicationExtension;
 import org.testfx.framework.junit5.Start;
 
 import java.awt.*;
+import java.awt.desktop.OpenURIHandler;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.rmi.server.UID;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -71,7 +75,7 @@ public class ImCacheTests {
     @Test
     void testNullUrl() {
         ImRequest request = ImCache.instance().request()
-            .load(null)
+            .load((URL) null)
             .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
             .execute();
         assertSame(RequestState.FAILED, request.state());
@@ -179,7 +183,6 @@ public class ImCacheTests {
             Optional<ImImage> img = ImCache.instance().storage().getImage(stringEntry.getKey());
             assertTrue(img.isPresent());
             assertNotNull(img.get().url());
-            assertDoesNotThrow(() -> Downloader.toURL(img.get().url()));
         }
         Utils.sleep(500);
     }
@@ -210,7 +213,40 @@ public class ImCacheTests {
             Optional<ImImage> img = ImCache.instance().storage().getImage(stringEntry.getKey());
             assertTrue(img.isPresent());
             assertNotNull(img.get().url());
-            assertDoesNotThrow(() -> Downloader.toURL(img.get().url()));
+        }
+        Utils.sleep(500);
+    }
+
+    @Test
+    void testLocalRequest(FxRobot robot) throws IOException {
+        ImageView view = Utils.setupStage();
+
+        // Download image to local
+        byte[] raw = URLHandler.resolve(URLHandler.toURL(IMAGE_URL).orElse(null), null);
+        Path saved = Files.write(TEMP_DIR.resolve("image.jpg"), raw);
+        robot.interact(() -> Utils.setImage(view, saved));
+        Utils.sleep(500);
+
+        // Reset view
+        robot.interact(() -> view.setImage(null));
+
+        // Local request
+        ImRequest req = ImCache.instance()
+            .request()
+            .load(saved.toUri().toURL())
+            .execute();
+        assertSame(RequestState.SUCCEEDED, req.state());
+        assertTrue(ImCache.instance().storage().contains(req));
+
+        // Check image integrity
+        ImCache.instance().storage()
+            .getImage(req)
+            .ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
+        // Also check for ImImage objects integrity after deserialization
+        for (Map.Entry<String, ?> stringEntry : ImCache.instance().storage()) {
+            Optional<ImImage> img = ImCache.instance().storage().getImage(stringEntry.getKey());
+            assertTrue(img.isPresent());
+            assertNotNull(img.get().url());
         }
         Utils.sleep(500);
     }
