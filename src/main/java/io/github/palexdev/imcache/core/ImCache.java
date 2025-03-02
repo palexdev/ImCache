@@ -37,7 +37,7 @@ public class ImCache {
 
     // Execution
     public ImRequest request(URL url) {
-        return new ImRequest(url);
+        return new ImRequest(this, url);
     }
 
     public ImRequest request(String s) {

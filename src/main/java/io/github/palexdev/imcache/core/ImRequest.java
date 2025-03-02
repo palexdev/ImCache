@@ -1,5 +1,9 @@
 package io.github.palexdev.imcache.core;
 
+import io.github.palexdev.imcache.cache.Identifiable;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+import io.github.palexdev.imcache.transforms.Transform;
+import io.github.palexdev.imcache.utils.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
@@ -9,15 +13,11 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
-import io.github.palexdev.imcache.cache.Identifiable;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.transforms.Transform;
-import io.github.palexdev.imcache.utils.*;
-
 public class ImRequest implements Identifiable {
     //================================================================================
     // Properties
     //================================================================================
+    private final ImCache cache;
     private RequestState state = RequestState.READY;
     private String id;
     private final URL url;
@@ -30,7 +30,8 @@ public class ImRequest implements Identifiable {
     //================================================================================
     // Constructors
     //================================================================================
-    public ImRequest(URL url) {
+    public ImRequest(ImCache cache, URL url) {
+        this.cache = cache;
         this.url = url;
     }
 
@@ -83,12 +84,12 @@ public class ImRequest implements Identifiable {
             if (isOverwrite()) {
                 src = ImImage.wrap(url, URLHandler.resolve(this));
             } else {
-                src = OptionalWrapper.wrap(ImCache.instance().storage().getImage(this))
+                src = OptionalWrapper.wrap(cache.storage().getImage(this))
                     .ifPresent(i -> cacheHit.set(true))
                     .orElseGet(() -> ImImage.wrap(url, URLHandler.resolve(this)));
             }
             out = transform(src);
-            ImCache.instance().store(this, src, out);
+            cache.store(this, src, out);
 
             // Determine specific success state, either cache hit or simple success
             // Then build the result
