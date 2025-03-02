@@ -10,6 +10,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
@@ -105,9 +106,8 @@ public class ImRequest implements Identifiable {
         return this;
     }
 
-    public ImRequest executeAsync() {
-        AsyncUtils.runAsync(this::execute);
-        return this;
+    public Future<ImRequest> executeAsync() {
+        return AsyncUtils.runAsync(this::execute);
     }
 
     protected ImImage transform(ImImage src) {
