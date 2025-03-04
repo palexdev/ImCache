@@ -1,7 +1,7 @@
 package io.github.palexdev.imcache.utils;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URL;
+import java.util.*;
 
 public enum MediaType {
     // Image MIME types
@@ -32,11 +32,21 @@ public enum MediaType {
     //================================================================================
     // For quick lookup
     private static final Map<String, MediaType> MIME_TYPE_MAP = new HashMap<>();
+    private static final Set<String> EXTENSIONS_SET = new HashSet<>();
 
     static {
         for (MediaType type : MediaType.values()) {
             MIME_TYPE_MAP.put(type.getMimeType().toLowerCase(), type);
         }
+
+        Collections.addAll(EXTENSIONS_SET,
+            // Image extensions
+            "jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "tiff", "tif",
+            "ico", "cur", "heic", "heif", "jxr", "wdp", "hdp", "avif",
+
+            // Video extensions
+            "mp4", "m4v", "webm", "avi", "flv", "mkv", "mpeg", "mpg"
+        );
     }
 
     //================================================================================
@@ -58,6 +68,15 @@ public enum MediaType {
     public static boolean isSupportedMimeType(String mimeType) {
         if (mimeType == null) return false;
         return MIME_TYPE_MAP.containsKey(mimeType.toLowerCase());
+    }
+
+    public static boolean isSupportedExtension(URL url) {
+        if (url == null) return false;
+        String path = url.getPath();
+        int dot = path.lastIndexOf('.');
+        if (dot < 0 || dot == path.length() - 1) return false;
+        String ext = path.substring(dot + 1).toLowerCase();
+        return EXTENSIONS_SET.contains(ext);
     }
 
     //================================================================================

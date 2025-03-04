@@ -1,12 +1,13 @@
 package io.github.palexdev.imcache.utils;
 
 
-import java.io.InputStream;
-import java.net.*;
-import java.util.Optional;
-
 import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Optional;
 
 public class URLHandler {
 
@@ -52,7 +53,7 @@ public class URLHandler {
 
     private static void verify(URLConnection connection) throws ImCacheException {
         String type = connection.getContentType();
-        if (!MediaType.isSupportedMimeType(type))
+        if (!MediaType.isSupportedMimeType(type) && !MediaType.isSupportedExtension(connection.getURL()))
             throw new ImCacheException(
                 "Unsupported MIME type %s for url %s"
                     .formatted(type, connection.getURL())
