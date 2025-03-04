@@ -55,8 +55,8 @@ public enum MediaType {
     //================================================================================
     // Static Methods
     //================================================================================
-
     public static boolean isSupportedMimeType(String mimeType) {
+        if (mimeType == null) return false;
         return MIME_TYPE_MAP.containsKey(mimeType.toLowerCase());
     }
 
