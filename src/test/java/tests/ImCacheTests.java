@@ -1,5 +1,14 @@
 package tests;
 
+import io.github.palexdev.imcache.cache.DiskCache;
+import io.github.palexdev.imcache.cache.MemoryCache;
+import io.github.palexdev.imcache.core.ImCache;
+import io.github.palexdev.imcache.core.ImImage;
+import io.github.palexdev.imcache.core.ImRequest;
+import io.github.palexdev.imcache.core.ImRequest.RequestState;
+import io.github.palexdev.imcache.transforms.*;
+import io.github.palexdev.imcache.utils.TriConsumer;
+import io.github.palexdev.imcache.utils.URLHandler;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -9,15 +18,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import io.github.palexdev.imcache.cache.DiskCache;
-import io.github.palexdev.imcache.cache.MemoryCache;
-import io.github.palexdev.imcache.core.ImCache;
-import io.github.palexdev.imcache.core.ImImage;
-import io.github.palexdev.imcache.core.ImRequest;
-import io.github.palexdev.imcache.core.ImRequest.RequestState;
-import io.github.palexdev.imcache.transforms.*;
-import io.github.palexdev.imcache.utils.URLHandler;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;
@@ -37,6 +37,13 @@ public class ImCacheTests {
     public static final String IMAGE_URL = "https://cdn.pixabay.com/photo/2024/04/09/03/04/ai-generated-8684869_960_720.jpg";
     public static final String GIF_URL = "https://media3.giphy.com/media/MT5UUV1d4CXE2A37Dg/200w.gif?cid=6c09b952atir21ebxac41fydue6xyxfrnena2lzmsr7a5n7p&ep=v1_gifs_search&rid=200w.gif&ct=g";
     private static Path TEMP_DIR;
+
+    private static final TriConsumer<ImRequest.Result, FxRobot, ImageView> COMMON_CALLBACK = (r, rb, v) -> {
+        r.src().ifPresent(i -> rb.interact(() -> Utils.setImage(v, i.asStream())));
+        Utils.sleep(500);
+        r.out().ifPresent(i -> rb.interact(() -> Utils.setImage(v, i.asStream())));
+        Utils.sleep(500);
+    };
 
     @BeforeEach
     void setup() throws IOException {
@@ -73,8 +80,7 @@ public class ImCacheTests {
     void testNullUrl() {
         ImRequest request = ImCache.instance()
             .request((URL) null)
-            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
-            .execute();
+            .execute(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())));
         assertSame(RequestState.FAILED, request.state());
     }
 
@@ -82,8 +88,7 @@ public class ImCacheTests {
     void testInvalidUrl() {
         ImRequest request = ImCache.instance()
             .request("This is an invalid url")
-            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
-            .execute();
+            .execute(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())));
         assertSame(RequestState.FAILED, request.state());
     }
 
@@ -91,38 +96,27 @@ public class ImCacheTests {
     void testInvalidResource() {
         ImRequest request = ImCache.instance()
             .request("https://google.com")
-            .onStateChanged(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())))
-            .execute();
+            .execute(r -> r.error().ifPresent(t -> System.err.println(t.getMessage())));
         assertSame(RequestState.FAILED, request.state());
     }
 
     @Test
     void testDownloadAndOpen(FxRobot robot) {
         ImageView view = Utils.setupStage();
-        ImRequest request = downloadImg()
-            .onStateChanged(r -> {
-                if (r.state() == RequestState.SUCCEEDED) {
-                    robot.interact(() -> Utils.setImage(view, r.unwrapOut().asStream()));
-                }
-            })
-            .execute();
-        assertSame(RequestState.SUCCEEDED, request.state());
-        assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
+        ImRequest.Result res = downloadImg().execute().result();
+        assertSame(RequestState.SUCCEEDED, res.state());
+        assertTrue(Files.exists(TEMP_DIR.resolve(res.id())));
+        robot.interact(() -> Utils.setImage(view, res.unwrapOut().asStream()));
         Utils.sleep(500);
     }
 
     @Test
     void testGif(FxRobot robot) {
         ImageView view = Utils.setupStage();
-        ImRequest request = downloadGif()
-            .onStateChanged(r -> {
-                if (r.state() == RequestState.SUCCEEDED) {
-                    robot.interact(() -> Utils.setImage(view, r.unwrapOut().asStream()));
-                }
-            })
-            .execute();
-        assertSame(RequestState.SUCCEEDED, request.state());
-        assertTrue(Files.exists(TEMP_DIR.resolve(request.id())));
+        ImRequest.Result res = downloadGif().execute().result();
+        assertSame(RequestState.SUCCEEDED, res.state());
+        assertTrue(Files.exists(TEMP_DIR.resolve(res.id())));
+        robot.interact(() -> Utils.setImage(view, res.unwrapOut().asStream()));
         Utils.sleep(1000);
     }
 
@@ -149,7 +143,8 @@ public class ImCacheTests {
 
     @Test
     void testAsync() {
-        ImRequest request = downloadImg().executeAsync();
+        ImRequest request = downloadImg();
+        request.executeAsync(null);
         assertNotSame(RequestState.SUCCEEDED, request.state());
         Awaitility.await()
             .atMost(5, TimeUnit.SECONDS)
@@ -252,13 +247,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new CenterCrop(200, 200))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -268,13 +257,7 @@ public class ImCacheTests {
         ImRequest request = downloadImg()
             .transform(new Resize(400, 400)) // Too big to show
             .transform(new CircleCrop(Color.WHITE, Color.RED, 5.0f))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(1000);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -283,13 +266,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Resize(200, 200))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -298,13 +275,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Resize(400, 400))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -313,13 +284,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Rotate(45))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -328,13 +293,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Flip(Flip.FlipOrientation.VERTICAL))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -343,13 +302,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Flip(Flip.FlipOrientation.HORIZONTAL))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -358,13 +311,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Fit(360, 240))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -373,13 +320,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Pad(360, 240, Color.RED))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -388,13 +329,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Grayscale())
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -403,13 +338,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Brightness(100))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -418,13 +347,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Brightness(-100))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -433,13 +356,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Contrast(1.2f))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -448,13 +365,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Contrast(0.8f))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -464,13 +375,7 @@ public class ImCacheTests {
         ImRequest request = downloadImg()
             .transform(new Resize(300, 300))
             .transform(new AspectRatioCrop(16, 9))
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -479,13 +384,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new GaussianBlur())
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -495,13 +394,7 @@ public class ImCacheTests {
         ImRequest request = downloadImg()
             .transform(new Resize(360, 360))
             .transform(new Vignette())
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -510,13 +403,7 @@ public class ImCacheTests {
         ImageView view = Utils.setupStage();
         ImRequest request = downloadImg()
             .transform(new Sketch())
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
@@ -529,13 +416,7 @@ public class ImCacheTests {
                 .setYOffset(-30)
                 .setXOffset(100)
             )
-            .onStateChanged(r -> {
-                r.src().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-                r.out().ifPresent(i -> robot.interact(() -> Utils.setImage(view, i.asStream())));
-                Utils.sleep(500);
-            })
-            .execute();
+            .execute(r -> COMMON_CALLBACK.accept(r, robot, view));
         assertSame(RequestState.SUCCEEDED, request.state());
     }
 
