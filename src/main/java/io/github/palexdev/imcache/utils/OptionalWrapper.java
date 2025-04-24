@@ -3,17 +3,11 @@ package io.github.palexdev.imcache.utils;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public class OptionalWrapper<T> {
-    //================================================================================
-    // Properties
-    //================================================================================
-    private final Optional<T> optional;
+public record OptionalWrapper<T>(Optional<T> optional) {
 
     //================================================================================
-    // Constructors
+    // Static Methods
     //================================================================================
-    public OptionalWrapper(Optional<T> optional) {this.optional = optional;}
-
     public static <T> OptionalWrapper<T> of(T val) {
         return wrap(Optional.of(val));
     }
@@ -36,10 +30,6 @@ public class OptionalWrapper<T> {
 
     public Optional<T> ifPresentOrElse(Consumer<T> consumer, Runnable emptyAction) {
         optional.ifPresentOrElse(consumer, emptyAction);
-        return optional;
-    }
-
-    public Optional<T> optional() {
         return optional;
     }
 }
