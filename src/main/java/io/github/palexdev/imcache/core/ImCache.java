@@ -56,7 +56,7 @@ public class ImCache {
     protected void store(ImRequest request, ImImage src, ImImage out) {
         String id = request.id();
         ImImage toSave = storeStrategy == StoreStrategy.SAVE_ORIGINAL ? src : out;
-        cache.store(id, toSave);
+        if (toSave != null) cache.store(id, toSave);
     }
 
     public void clear() {
