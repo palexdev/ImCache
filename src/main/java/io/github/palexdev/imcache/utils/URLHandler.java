@@ -3,6 +3,7 @@ package io.github.palexdev.imcache.utils;
 
 import io.github.palexdev.imcache.core.ImRequest;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
+import java.io.File;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
@@ -46,6 +47,14 @@ public class URLHandler {
     public static Optional<URL> toURL(String url) {
         try {
             return Optional.of(URI.create(url).toURL());
+        } catch (Exception ex) {
+            return Optional.empty();
+        }
+    }
+
+    public static Optional<URL> toURL(File file) {
+        try {
+            return Optional.of(file.toURI().toURL());
         } catch (Exception ex) {
             return Optional.empty();
         }

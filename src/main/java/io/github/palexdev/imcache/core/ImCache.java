@@ -46,7 +46,7 @@ public class ImCache {
     }
 
     public ImRequest request(File file) {
-        return request(URLHandler.toURL(file.getAbsolutePath()).orElse(null));
+        return request(URLHandler.toURL(file).orElse(null));
     }
 
     public ImRequest request(Path path) {
