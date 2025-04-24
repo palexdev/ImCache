@@ -4,7 +4,6 @@ import io.github.palexdev.imcache.cache.Identifiable;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.transforms.Transform;
 import io.github.palexdev.imcache.utils.*;
-
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
@@ -13,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ImRequest implements Identifiable {
@@ -20,14 +20,14 @@ public class ImRequest implements Identifiable {
     // Properties
     //================================================================================
     private final ImCache cache;
-    private RequestState state = RequestState.READY;
     private String id;
     private final URL url;
     private boolean overwrite = false;
     private final List<Transform> transforms = new ArrayList<>();
     private ThrowingConsumer<URLConnection> urlConfig = c -> {};
-    private ThrowingConsumer<Result> onStateChanged = r -> {};
     private Function<BufferedImage, byte[]> imageConverter = i -> ImageUtils.toBytes("png", i);
+
+    private Result result = new Result(this);
 
     //================================================================================
     // Constructors
@@ -59,8 +59,9 @@ public class ImRequest implements Identifiable {
     @Override
     public String toString() {
         return "ImRequest{" +
-               "state=" + state +
+               "id='" + id + '\'' +
                ", url=" + url +
+               ", result=" + result +
                '}';
     }
 
@@ -69,19 +70,19 @@ public class ImRequest implements Identifiable {
     //================================================================================
 
     // Execution
-    public ImRequest execute() {
+    public ImRequest execute(Consumer<Result> callback) {
         // Result data
         RequestState state = RequestState.READY;
         ImImage src = null;
         ImImage out = null;
-        Result result = new Result(this);
         AtomicBoolean cacheHit = new AtomicBoolean(false);
         try {
             if (url == null) {
                 throw new ImCacheException("Could not execute request %s because url is null".formatted(this));
             }
             // Update and notify request started
-            updateState(RequestState.STARTED, result);
+            result = result.withState(RequestState.STARTED);
+            if (callback != null) callback.accept(result);
 
             if (isOverwrite()) {
                 src = ImImage.wrap(url, URLHandler.resolve(this));
@@ -96,19 +97,22 @@ public class ImRequest implements Identifiable {
             // Determine specific success state, either cache hit or simple success
             // Then build the result
             state = cacheHit.get() ? RequestState.CACHE_HIT : RequestState.SUCCEEDED;
-            result = new Result(this, src, out, null);
+            result = new Result(this, state, src, out, null);
         } catch (Exception ex) {
             state = RequestState.FAILED;
-            result = new Result(this, src, out, ex);
+            result = new Result(this, state, src, out, ex);
         } finally {
-            // At the end of all operations update the state
-            updateState(state, result);
+            if (callback != null) callback.accept(result);
         }
         return this;
     }
 
-    public Future<ImRequest> executeAsync() {
-        return AsyncUtils.runAsync(this::execute);
+    public ImRequest execute() {
+        return execute(null);
+    }
+
+    public Future<ImRequest> executeAsync(Consumer<Result> callback) {
+        return AsyncUtils.runAsync(() -> execute(callback));
     }
 
     protected ImImage transform(ImImage src) {
@@ -136,11 +140,6 @@ public class ImRequest implements Identifiable {
         return this;
     }
 
-    public ImRequest onStateChanged(ThrowingConsumer<Result> onStateChanged) {
-        this.onStateChanged = onStateChanged;
-        return this;
-    }
-
     public ImRequest setImageConverter(Function<BufferedImage, byte[]> imageConverter) {
         this.imageConverter = imageConverter;
         return this;
@@ -149,23 +148,12 @@ public class ImRequest implements Identifiable {
     //================================================================================
     // Getters/Setters
     //================================================================================
-    public RequestState state() {
-        return state;
+    public Result result() {
+        return result;
     }
 
-    public void updateState(RequestState state, Result result) {
-        this.state = state;
-        if (onStateChanged != null) {
-            try {
-                onStateChanged.accept(result);
-            } catch (Exception ex) {
-                throw new ImCacheException(
-                    "Failed to execute onStateChanged callback for request %s"
-                        .formatted(this),
-                    ex
-                );
-            }
-        }
+    public RequestState state() {
+        return result.state();
     }
 
     public URL url() {
@@ -194,21 +182,26 @@ public class ImRequest implements Identifiable {
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     public record Result(
         ImRequest request,
+        RequestState state,
         OptionalWrapper<ImImage> src,
         OptionalWrapper<ImImage> out,
         OptionalWrapper<Throwable> error
     ) {
 
         private Result(ImRequest request) {
-            this(request, null, null, (Throwable) null);
+            this(request, RequestState.READY, null, null, (Throwable) null);
         }
 
-        public Result(ImRequest request, ImImage src, ImImage out, Throwable error) {
-            this(request,
+        public Result(ImRequest request, RequestState state, ImImage src, ImImage out, Throwable error) {
+            this(request, state,
                 OptionalWrapper.ofNullable(src),
                 OptionalWrapper.ofNullable(out),
                 OptionalWrapper.ofNullable(error)
             );
+        }
+
+        public String id() {
+            return request().id();
         }
 
         public ImImage unwrapSrc() {
@@ -223,12 +216,25 @@ public class ImRequest implements Identifiable {
             return error.optional().get();
         }
 
-        public RequestState state() {
-            return request.state();
+        public boolean isSuccess() {
+            return state == RequestState.SUCCEEDED || state == RequestState.CACHE_HIT;
         }
 
-        public boolean isEmpty() {
-            return src == null || out == null;
+        public boolean isFailed() {
+            return state == RequestState.FAILED;
+        }
+
+        public Result withState(RequestState state) {
+            return new Result(request, state, src, out, error);
+        }
+
+        @Override
+        public String toString() {
+            return "Result{" +
+                   "state=" + state +
+                   ", src=" + src +
+                   ", out=" + out +
+                   '}';
         }
     }
 }
