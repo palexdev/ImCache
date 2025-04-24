@@ -71,8 +71,7 @@ public class ImRequest implements Identifiable {
 
     // Execution
     public ImRequest execute(Consumer<Result> callback) {
-        // Result data
-        RequestState state = RequestState.READY;
+        result = new Result(this); // Reset result
         ImImage src = null;
         ImImage out = null;
         AtomicBoolean cacheHit = new AtomicBoolean(false);
@@ -94,13 +93,16 @@ public class ImRequest implements Identifiable {
             out = transform(src);
             cache.store(this, src, out);
 
-            // Determine specific success state, either cache hit or simple success
-            // Then build the result
-            state = cacheHit.get() ? RequestState.CACHE_HIT : RequestState.SUCCEEDED;
-            result = new Result(this, state, src, out, null);
+            result = new Result(
+                this,
+                // Determine specific success state, either cache hit or simply success
+                cacheHit.get() ? RequestState.CACHE_HIT : RequestState.SUCCEEDED,
+                src,
+                out,
+                null
+            );
         } catch (Exception ex) {
-            state = RequestState.FAILED;
-            result = new Result(this, state, src, out, ex);
+            result = new Result(this, RequestState.FAILED, src, out, ex);
         } finally {
             if (callback != null) callback.accept(result);
         }
