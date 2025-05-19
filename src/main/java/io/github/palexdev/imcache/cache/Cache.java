@@ -1,60 +1,51 @@
 package io.github.palexdev.imcache.cache;
 
-import java.util.*;
+import java.nio.file.Path;
+import java.util.Map;
+import java.util.Optional;
 
-public abstract class Cache<V> implements ICache<V> {
-    //================================================================================
-    // Properties
-    //================================================================================
-    protected final SequencedMap<String, V> cache;
-    protected int capacity = 10;
+public interface Cache<V> {
+    Path DEFAULT_CACHE_PATH = Path.of(System.getProperty("user.home"), ".imcache");
 
-    //================================================================================
-    // Constructors
-    //================================================================================
-    public Cache() {
-        this.cache = new LinkedHashMap<>();
-    }
-
-    protected Cache(SequencedMap<String, V> cache) {
-        this.cache = cache;
-    }
-
-    //================================================================================
-    // Overridden Methods
-    //================================================================================
-    @Override
-    public Iterator<Map.Entry<String, V>> iterator() {
-        return asMap().entrySet().iterator();
-    }
-
-    @Override
-    public void clear() {
-        cache.clear();
-    }
-
-    @Override
-    public int size() {
-        return cache.size();
-    }
-
-    @Override
-    public Map<String, V> asMap() {
-        return Collections.unmodifiableMap(cache);
-    }
-
-    //================================================================================
-    // Getters/Setters
-    //================================================================================
-    @Override
-    public int getCapacity() {
-        return capacity;
-    }
-
-    @Override
-    public ICache<V> setCapacity(int capacity) {
-        while (size() > capacity) removeOldest();
-        this.capacity = capacity;
+    default Cache<V> scan(Path scanPath) {
         return this;
+    }
+
+    boolean contains(String id);
+
+    default boolean contains(WithID id) {
+        return contains(id.id());
+    }
+
+    Optional<V> get(String id);
+
+    default Optional<V> get(WithID id) {
+        return get(id.id());
+    }
+
+    void store(String id, V value);
+
+    default void store(WithID id, V value) {
+        store(id.id(), value);
+    }
+
+    boolean remove(String id);
+
+    default boolean remove(WithID id) {
+        return remove(id.id());
+    }
+
+    boolean removeOldest();
+
+    void clear();
+
+    int size();
+
+    int getCapacity();
+
+    Cache<V> setCapacity(int capacity);
+
+    default Map<String, V> asMap() {
+        return Map.of();
     }
 }

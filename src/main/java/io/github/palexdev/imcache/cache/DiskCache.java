@@ -7,21 +7,66 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.SequencedMap;
 import java.util.stream.Stream;
 
-public class DiskCache extends Cache<File> {
+public class DiskCache extends ImgCache<File> {
+    //================================================================================
+    // Enum
+    //================================================================================
+    public enum ClearMode {
+        NO_CLEAN {
+            @Override
+            void clear(DiskCache cache) {
+                // No-op
+            }
+        },
+        MEMORY {
+            @Override
+            void clear(DiskCache cache) {
+                cache.clear();
+            }
+        },
+        DISK_AND_MEMORY {
+            @Override
+            void clear(DiskCache cache) {
+                cache.cache.values().forEach(cache::delete);
+                cache.clear();
+            }
+        };
+
+        abstract void clear(DiskCache cache);
+    }
+
     //================================================================================
     // Properties
     //================================================================================
-    private Path savePath = Paths.get(System.getProperty("user.home"), "im-cache");
+    private Path savePath = DEFAULT_CACHE_PATH;
+
+    //================================================================================
+    // Constructors
+    //================================================================================
+    public DiskCache() {
+        super();
+    }
+
+    public DiskCache(Path savePath) {
+        this.savePath = savePath;
+    }
+
+    protected DiskCache(SequencedMap<String, File> cache, Path savePath) {
+        super(cache);
+        this.savePath = savePath;
+    }
 
     //================================================================================
     // Methods
     //================================================================================
     protected boolean delete(File file) {
+        if (!file.exists()) return true;
+
         boolean done = file.delete();
         if (!done) {
             throw new ImCacheException(
@@ -32,11 +77,15 @@ public class DiskCache extends Cache<File> {
         return true;
     }
 
+    public void clear(ClearMode mode) {
+        mode.clear(this);
+    }
+
     //================================================================================
     // Overridden Methods
     //================================================================================
     @Override
-    public DiskCache scan() {
+    public DiskCache scan(Path scanPath) {
         if (capacity == 0) return this;
         try (Stream<Path> stream = Files.list(savePath)) {
             stream.filter(f -> !Files.isDirectory(f))
@@ -57,14 +106,12 @@ public class DiskCache extends Cache<File> {
 
     @Override
     public void store(String id, ImImage img) {
-        if (capacity == 0) return;
-        if (size() == capacity) removeOldest();
         try {
             Path path = savePath.resolve(id);
             File file = path.toFile();
             Files.createDirectories(path.getParent());
             ImageUtils.serialize(img, file);
-            cache.put(id, file);
+            store(id, file);
         } catch (Exception ex) {
             throw new ImCacheException(
                 "Failed to store image %s in cache"
@@ -72,16 +119,6 @@ public class DiskCache extends Cache<File> {
                 ex
             );
         }
-    }
-
-    @Override
-    public boolean contains(String id) {
-        return cache.containsKey(id);
-    }
-
-    @Override
-    public Optional<File> get(String id) {
-        return Optional.ofNullable(cache.get(id));
     }
 
     @Override
@@ -108,18 +145,6 @@ public class DiskCache extends Cache<File> {
         return delete(file);
     }
 
-    @Override
-    public boolean removeOldest() {
-        if (cache.isEmpty()) return false;
-        return remove(cache.firstEntry().getKey());
-    }
-
-    @Override
-    public void clear() {
-        for (File f : cache.values()) delete(f);
-        super.clear();
-    }
-
     //================================================================================
     // Getters/Setters
     //================================================================================
@@ -128,14 +153,12 @@ public class DiskCache extends Cache<File> {
     }
 
     public DiskCache saveTo(Path savePath) {
-        return saveTo(savePath, false);
+        return saveTo(savePath, null);
     }
 
-    public DiskCache saveTo(Path savePath, boolean cleanUp) {
-        if (cleanUp) cache.values().forEach(this::delete);
-        cache.clear();
-
-        if (savePath == null) savePath = Paths.get(System.getProperty("user.home"), "im-cache");
+    public DiskCache saveTo(Path savePath, ClearMode clearMode) {
+        Optional.ofNullable(clearMode).ifPresent(m -> m.clear(this));
+        if (savePath == null) savePath = DEFAULT_CACHE_PATH;
         this.savePath = savePath;
         return this;
     }

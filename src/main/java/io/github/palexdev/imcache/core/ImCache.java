@@ -1,6 +1,7 @@
 package io.github.palexdev.imcache.core;
 
-import io.github.palexdev.imcache.cache.ICache;
+import io.github.palexdev.imcache.cache.Cache;
+import io.github.palexdev.imcache.cache.ImgCache;
 import io.github.palexdev.imcache.cache.MemoryCache;
 import io.github.palexdev.imcache.cache.WithID;
 import io.github.palexdev.imcache.utils.URLHandler;
@@ -23,7 +24,7 @@ public class ImCache {
     //================================================================================
     // Properties
     //================================================================================
-    private ICache<?> cache = new MemoryCache();
+    private ImgCache<?> cache = new MemoryCache();
     private StoreStrategy storeStrategy = StoreStrategy.SAVE_ORIGINAL;
 
     //================================================================================
@@ -68,11 +69,11 @@ public class ImCache {
     }
 
     public void clear() {
-        Optional.ofNullable(cache).ifPresent(ICache::clear);
+        Optional.ofNullable(cache).ifPresent(Cache::clear);
     }
 
     // Setup
-    public ImCache cacheConfig(Supplier<ICache<?>> config) {
+    public ImCache cacheConfig(Supplier<ImgCache<?>> config) {
         this.cache = config.get();
         return this;
     }
@@ -85,7 +86,7 @@ public class ImCache {
     //================================================================================
     // Getters
     //================================================================================
-    public ICache<?> storage() {
+    public ImgCache<?> storage() {
         return cache;
     }
 

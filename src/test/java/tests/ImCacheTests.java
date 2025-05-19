@@ -188,12 +188,12 @@ public class ImCacheTests {
         assertEquals(1, ImCache.instance().storage().size());
 
         // Save to disk
-        ((MemoryCache) ImCache.instance().storage()).saveToDisk(TEMP_DIR);
+        ((MemoryCache) ImCache.instance().storage()).toDisk(TEMP_DIR);
         ImCache.instance().storage().clear();
         assertEquals(0, ImCache.instance().storage().size());
 
         // Change cache object
-        ImCache.instance().cacheConfig(() -> new MemoryCache().scanPath(TEMP_DIR).scan());
+        ImCache.instance().cacheConfig(() -> new MemoryCache().scan(TEMP_DIR));
         assertEquals(1, ImCache.instance().storage().size());
 
         // Check image integrity

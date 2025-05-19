@@ -6,42 +6,39 @@ import io.github.palexdev.imcache.utils.ImageUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Map;
 import java.util.Optional;
+import java.util.SequencedMap;
 
-public class MemoryCache extends Cache<ImImage> {
-    private Path scanPath = Paths.get(System.getProperty("user.home"), "im-cache");
+public class MemoryCache extends ImgCache<ImImage> {
+
+    //================================================================================
+    // Constructors
+    //================================================================================
+    public MemoryCache() {
+        super();
+    }
+
+    protected MemoryCache(SequencedMap<String, ImImage> cache) {
+        super(cache);
+    }
 
     //================================================================================
     // Methods
     //================================================================================
-    public MemoryCache saveToDisk(Path savePath) {
-        String id = null;
-        try {
-            for (Map.Entry<String, ImImage> e : cache.entrySet()) {
-                id = e.getKey();
-                ImImage img = e.getValue();
-                Path path = savePath.resolve(id);
-                ImageUtils.serialize(img, path.toFile());
-            }
-        } catch (IOException ex) {
-            throw new ImCacheException(
-                "Failed to save image %s from memory to disk"
-                    .formatted(id),
-                ex
-            );
-        }
-        return this;
+    public DiskCache toDisk(Path savePath) {
+        DiskCache dCache = new DiskCache(savePath);
+        dCache.setCapacity(capacity);
+        cache.forEach(dCache::store);
+        return dCache;
     }
 
     //================================================================================
     // Overridden Methods
     //================================================================================
     @Override
-    public MemoryCache scan() {
+    public MemoryCache scan(Path scanPath) {
         if (scanPath == null || capacity == 0) return this;
         try {
             File[] files = scanPath.toFile().listFiles();
@@ -61,47 +58,7 @@ public class MemoryCache extends Cache<ImImage> {
     }
 
     @Override
-    public void store(String id, ImImage img) {
-        if (capacity == 0) return;
-        if (size() == capacity) removeOldest();
-        cache.put(id, img);
-    }
-
-    @Override
-    public boolean contains(String id) {
-        return cache.containsKey(id);
-    }
-
-    @Override
-    public Optional<ImImage> get(String id) {
-        return Optional.ofNullable(cache.get(id));
-    }
-
-    @Override
     public Optional<ImImage> getImage(String id) {
         return get(id);
-    }
-
-    @Override
-    public boolean remove(String id) {
-        return Optional.ofNullable(cache.remove(id)).isPresent();
-    }
-
-    @Override
-    public boolean removeOldest() {
-        if (cache.isEmpty()) return false;
-        return remove(cache.firstEntry().getKey());
-    }
-
-    //================================================================================
-    // Getters/Setters
-    //================================================================================
-    public Path getScanPath() {
-        return scanPath;
-    }
-
-    public MemoryCache scanPath(Path scanPath) {
-        this.scanPath = scanPath;
-        return this;
     }
 }
