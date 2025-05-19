@@ -1,8 +1,8 @@
 package io.github.palexdev.imcache.core;
 
 import io.github.palexdev.imcache.cache.ICache;
-import io.github.palexdev.imcache.cache.Identifiable;
 import io.github.palexdev.imcache.cache.MemoryCache;
+import io.github.palexdev.imcache.cache.WithID;
 import io.github.palexdev.imcache.utils.URLHandler;
 import java.io.File;
 import java.net.URL;
@@ -63,8 +63,8 @@ public class ImCache {
         return cache.remove(id);
     }
 
-    public boolean remove(Identifiable identifiable) {
-        return remove(identifiable.id());
+    public boolean remove(WithID id) {
+        return remove(id.id());
     }
 
     public void clear() {

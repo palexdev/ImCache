@@ -1,9 +1,8 @@
 package io.github.palexdev.imcache.cache;
 
+import io.github.palexdev.imcache.core.ImImage;
 import java.util.Map;
 import java.util.Optional;
-
-import io.github.palexdev.imcache.core.ImImage;
 
 public interface ICache<V> extends Iterable<Map.Entry<String, V>> {
 
@@ -13,32 +12,32 @@ public interface ICache<V> extends Iterable<Map.Entry<String, V>> {
 
     void store(String id, ImImage img);
 
-    default void store(Identifiable identifiable, ImImage img) {
-        store(identifiable.id(), img);
+    default void store(WithID id, ImImage img) {
+        store(id.id(), img);
     }
 
     boolean contains(String id);
 
-    default boolean contains(Identifiable identifiable) {
-        return contains(identifiable.id());
+    default boolean contains(WithID id) {
+        return contains(id.id());
     }
 
     Optional<V> get(String id);
 
-    default Optional<V> get(Identifiable identifiable) {
-        return get(identifiable.id());
+    default Optional<V> get(WithID id) {
+        return get(id.id());
     }
 
     Optional<ImImage> getImage(String id);
 
-    default Optional<ImImage> getImage(Identifiable identifiable) {
-        return getImage(identifiable.id());
+    default Optional<ImImage> getImage(WithID id) {
+        return getImage(id.id());
     }
 
     boolean remove(String id);
 
-    default boolean remove(Identifiable identifiable) {
-        return remove(identifiable.id());
+    default boolean remove(WithID id) {
+        return remove(id.id());
     }
 
     boolean removeOldest();

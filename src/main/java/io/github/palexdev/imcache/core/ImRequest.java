@@ -1,6 +1,6 @@
 package io.github.palexdev.imcache.core;
 
-import io.github.palexdev.imcache.cache.Identifiable;
+import io.github.palexdev.imcache.cache.WithID;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.transforms.Transform;
 import io.github.palexdev.imcache.utils.*;
@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ImRequest implements Identifiable {
+public class ImRequest implements WithID {
     //================================================================================
     // Properties
     //================================================================================
