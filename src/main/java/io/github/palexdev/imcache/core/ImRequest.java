@@ -9,7 +9,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -42,17 +41,7 @@ public class ImRequest implements WithID {
     //================================================================================
 
     public String id() {
-        if (id == null) {
-            try {
-                id = UUID.nameUUIDFromBytes(url.toString().getBytes()).toString();
-            } catch (Exception ex) {
-                throw new ImCacheException(
-                    "Failed to generate id for request %s to a name"
-                        .formatted(this),
-                    ex
-                );
-            }
-        }
+        if (id == null) id = WithID.generateId(url);
         return id;
     }
 

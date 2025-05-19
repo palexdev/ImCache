@@ -3,7 +3,6 @@ package io.github.palexdev.imcache.cache;
 import io.github.palexdev.imcache.core.ImImage;
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.utils.ImageUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -45,7 +44,7 @@ public class DiskCache extends Cache<File> {
                 .sorted(Comparator.comparingLong(File::lastModified))
                 .forEach(f -> {
                     if (size() == capacity) removeOldest();
-                    cache.put(f.getName(), f);
+                    cache.put(WithID.generateId(f), f);
                 });
         } catch (IOException ex) {
             throw new ImCacheException(
