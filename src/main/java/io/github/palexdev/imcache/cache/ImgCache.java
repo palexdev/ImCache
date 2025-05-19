@@ -48,6 +48,10 @@ public abstract class ImgCache<V> implements Cache<V>, Iterable<Map.Entry<String
         return getImage(id.id());
     }
 
+    public void forEach(BiConsumer<String, V> consumer) {
+        cache.forEach(consumer);
+    }
+
     //================================================================================
     // Overridden Methods
     //================================================================================
