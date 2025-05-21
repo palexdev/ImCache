@@ -1,3 +1,4 @@
+[//]: @formatter:off
 # ImCache
 
 **ImCache** is a lightweight Java library for fetching and caching images from any URL (whether it's a local
@@ -43,21 +44,11 @@ Here's a generic quick example of how to use ImCache:
 
 ```java
 ImCache.instance()       // You can also create new instances, constructor is public
-    .
-
-cacheConfig(() ->{/*Cache configuration*/})
-    .
-
-storeStrategy(...)  // Cache original or transformed image
-    .
-
-request(myResource) // Can be a URL, file, string...
-    .
-
-transform(...)      // Here you can specify what transform to apply to the image
-    .
-
-execute(callback);  // Or executeAsync(...) if you want to load in the background. The callback is optional!
+    .cacheConfig(() ->{/*Cache configuration*/})
+    .storeStrategy(...)  // Cache original or transformed image
+    .request(myResource) // Can be a URL, file, string...
+    .transform(...)      // Here you can specify what transform to apply to the image
+    .execute(callback);  // Or executeAsync(...) if you want to load in the background. The callback is optional!
 ```
 
 ## 📝 Documentation
