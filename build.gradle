@@ -38,6 +38,10 @@ javafx {
 
 test {
     useJUnitPlatform()
+    // Because the new TestFX is garbage :)
+    jvmArgs += [
+        '--add-opens', 'javafx.graphics/com.sun.javafx.application=ALL-UNNAMED'
+    ]
 }
 
 configurations {
