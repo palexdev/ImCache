@@ -3,6 +3,17 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// A transformation class that converts a source [BufferedImage] into its grayscale equivalent.
+/// This transformation applies a weighted sum of the red, green, and blue channels of each pixel,
+/// producing a single intensity value for each pixel.
+///
+/// The weights used for the grayscale conversion are:
+/// - Red channel: 0.299
+/// - Green channel: 0.587
+/// - Blue channel: 0.114
+///
+/// These weights are based on the luminosity method, which considers the human eye's sensitivity
+/// to different wavelengths of light.
 public class Grayscale implements Transform {
 
     //================================================================================

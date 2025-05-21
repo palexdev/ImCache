@@ -1,11 +1,19 @@
 package io.github.palexdev.imcache.transforms;
 
 import io.github.palexdev.imcache.exceptions.TransformException;
-
 import java.awt.*;
 import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 
+/// The [CircleCrop] class implements a circular cropping image transformation.
+///
+/// It takes a square image and masks it into a circle, optionally filling the background
+/// and outlining the circle with a customizable stroke. This transformation ensures
+/// high-quality rendering using antialiasing and rendering hints.
+///
+///
+/// **Note:** The input image must be square; otherwise, a [TransformException]
+/// is thrown.
 public class CircleCrop implements Transform {
     //================================================================================
     // Properties

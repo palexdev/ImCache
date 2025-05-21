@@ -1,13 +1,15 @@
 package io.github.palexdev.imcache.core;
 
+import io.github.palexdev.imcache.utils.ImageUtils;
 import java.awt.image.BufferedImage;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Objects;
 import java.util.function.Function;
 
-import io.github.palexdev.imcache.utils.ImageUtils;
-
+/// Wrapper type to represent a loaded image by its source [URL] and its raw byte data.
+///
+/// A series of convenience methods allow to convert the data to more useful formats.
 public class ImImage {
     //================================================================================
     // Properties
@@ -31,14 +33,17 @@ public class ImImage {
     // Methods
     //================================================================================
 
+    /// Converts the raw image data in this wrapper to a [BufferedImage] using [ImageUtils#toImage(Object)].
     public BufferedImage asImage() {
         return ImageUtils.toImage(data);
     }
 
+    /// Converts the raw image data in this wrapper to a [InputStream] using [ImageUtils#toStream(String, Object)].
     public InputStream asStream() {
         return ImageUtils.toStream(null, data);
     }
 
+    /// Converts the raw image data in this wrapper to the desired `T` type using the given function.
     public <T> T as(Function<byte[], T> converter) {
         return converter.apply(data);
     }
@@ -47,8 +52,12 @@ public class ImImage {
     // Getters
     //================================================================================
 
-    public URL url() {return url;}
+    /// @return the image's source [URL]
+    public URL url() {
+        return url;
+    }
 
+    /// @return the loaded image's raw data
     public byte[] rawData() {
         return data;
     }

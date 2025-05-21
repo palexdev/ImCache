@@ -4,6 +4,11 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+/// The [Rotate] class applies a rotation transformation to a given [BufferedImage].
+///
+/// This transformation rotates the input image by a specified angle (in degrees) around its center.
+///
+/// Positive values for the rotation angle represent clockwise rotation, while negative values represent counterclockwise rotation.
 public class Rotate implements Transform {
     //================================================================================
     // Properties

@@ -3,6 +3,8 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [AspectRatioCrop] class is an implementation of the [Transform] interface that crops an image to a specified
+/// target aspect ratio. The crop area is centered on the original image.
 public class AspectRatioCrop implements Transform {
     //================================================================================
     // Properties

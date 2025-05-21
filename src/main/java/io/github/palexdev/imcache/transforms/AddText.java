@@ -3,6 +3,10 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// A class that implements the [Transform] interface to add text to a [BufferedImage] given the text and the position.
+/// Further customizations include positions offsets, the font and the color.
+///
+/// The text location is specified by the [Position] enum, while the offsets allow for a finer control.
 public class AddText implements Transform {
     //================================================================================
     // Properties
@@ -55,7 +59,7 @@ public class AddText implements Transform {
 
         // Compute x and y depending on the position
         int totalTextH = lineHeight * lines.length;
-        int[] basePosition = position.computePositions(w, h, metrics.stringWidth(lines[0]), totalTextH);
+        int[] basePosition = position.computePosition(w, h, metrics.stringWidth(lines[0]), totalTextH);
         int x = basePosition[0] + xOffset;
         int y = basePosition[1] + yOffset;
 
@@ -102,60 +106,60 @@ public class AddText implements Transform {
     public enum Position {
         TOP_LEFT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{0, textH};
             }
         },
         TOP_CENTER {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{(imgW - textW) / 2, textH};
             }
         },
         TOP_RIGHT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{imgW - textW, textH};
             }
         },
         CENTER_LEFT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{0, (imgH - textH) / 2 + textH};
             }
         },
         CENTER {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{(imgW - textW) / 2, (imgH - textH) / 2 + textH};
             }
         },
         CENTER_RIGHT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{imgW - textW, (imgH - textH) / 2 + textH};
             }
         },
         BOTTOM_LEFT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{0, imgH - textH + textH / 2};
             }
         },
         BOTTOM_CENTER {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{(imgW - textW) / 2, imgH - textH + textH / 2};
             }
         },
         BOTTOM_RIGHT {
             @Override
-            public int[] computePositions(int imgW, int imgH, int textW, int textH) {
+            public int[] computePosition(int imgW, int imgH, int textW, int textH) {
                 return new int[]{imgW - textW, imgH - textH + textH / 2};
             }
         };
 
-        public abstract int[] computePositions(int imgW, int imgH, int textW, int textH);
+        public abstract int[] computePosition(int imgW, int imgH, int textW, int textH);
 
         public boolean isVerticalCenter() {
             return this == Position.TOP_CENTER ||

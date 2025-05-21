@@ -10,6 +10,9 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Optional;
 
+/**
+ * Utility class for handling URLs.
+ */
 public class URLHandler {
 
     //================================================================================
@@ -20,6 +23,9 @@ public class URLHandler {
     //================================================================================
     // Static Methods
     //================================================================================
+
+    /// Opens a connection to the given url, verifies that the content type is supported, configures the connection
+    /// with the given consumer and finally transfers the resource's content to a byte array using [ImageUtils#toBytes(String, Object)].
     public static byte[] resolve(URL url, ThrowingConsumer<URLConnection> urlConfig) {
         try {
             // Open connection
@@ -40,10 +46,12 @@ public class URLHandler {
         }
     }
 
+    /// Delegates to [#resolve(URL, ThrowingConsumer)] by using [ImRequest#url()] and [ImRequest#getUrlConfig()].
     public static byte[] resolve(ImRequest request) {
         return resolve(request.url(), request.getUrlConfig());
     }
 
+    /// Creates a [URL] from the given string using [URI#create(String)] and [URI#toURL()].
     public static Optional<URL> toURL(String url) {
         try {
             return Optional.of(URI.create(url).toURL());
@@ -52,6 +60,7 @@ public class URLHandler {
         }
     }
 
+    /// Converts the given [File] to a [URL] using [File#toURI()] and [URI#toURL()].
     public static Optional<URL> toURL(File file) {
         try {
             return Optional.of(file.toURI().toURL());
@@ -60,6 +69,9 @@ public class URLHandler {
         }
     }
 
+    /// Retrieves the content type from the given [URLConnection] ([URLConnection#getContentType()]) and then delegates
+    /// to [MediaType#isSupportedMimeType(String)] and [MediaType#isSupportedExtension(URL)] to ensure the resource is
+    /// valid and supported.
     private static void verify(URLConnection connection) throws ImCacheException {
         String type = connection.getContentType();
         if (!MediaType.isSupportedMimeType(type) && !MediaType.isSupportedExtension(connection.getURL()))

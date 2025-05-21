@@ -3,6 +3,13 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Fit] class scales an input [BufferedImage] while maintaining its aspect ratio, ensuring that the resulting image
+/// dimensions remain within specified maximum width and height bounds.
+/// It is designed to proportionally resize the image such that neither the width nor the height exceeds the specified limits,
+/// without cropping or distortion.
+///
+/// The scaling logic computes the aspect ratio for both width and height with respect to the maximum limits,
+/// and the smaller ratio is used as the scaling factor to preserve the original aspect ratio of the image.
 public class Fit implements Transform {
     //================================================================================
     // Properties

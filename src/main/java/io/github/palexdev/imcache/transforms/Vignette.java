@@ -3,6 +3,9 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Vignette] class provides a transformation that applies a vignette effect to the given [BufferedImage].
+/// The vignette effect darkens the edges of the image, simulating a gradual fade-out toward the corners, while maintaining
+/// the center's original brightness.
 public class Vignette implements Transform {
 
     //================================================================================

@@ -3,6 +3,8 @@ package io.github.palexdev.imcache.utils;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+/// A wrapper class for [Optional] to adapt [Optional#ifPresent(Consumer)] and [Optional#ifPresentOrElse(Consumer, Runnable)]
+/// to fluent API.
 public record OptionalWrapper<T>(Optional<T> optional) {
 
     //================================================================================

@@ -4,6 +4,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
 
+/// The [GaussianBlur] class applies a Gaussian blur filter to a given [BufferedImage]. The transformation uses a
+/// convolution operation with a pre-defined Gaussian kernel.
+///
+/// The kernel used in this implementation is a 5x5 matrix that approximates the Gaussian distribution.
 public class GaussianBlur implements Transform {
 
     //================================================================================

@@ -161,9 +161,7 @@ public class ImCacheTests {
         assertEquals(1, ImCache.instance().storage().size());
 
         // Set a new cache object and scan
-        ImCache.instance().cacheConfig(() -> new DiskCache().saveTo(TEMP_DIR));
-        assertEquals(0, ImCache.instance().storage().size());
-        ImCache.instance().storage().scan();
+        ImCache.instance().cacheConfig(() -> DiskCache.load(TEMP_DIR).saveTo(TEMP_DIR));
         assertEquals(1, ImCache.instance().storage().size());
 
         // Check image integrity
@@ -193,7 +191,7 @@ public class ImCacheTests {
         assertEquals(0, ImCache.instance().storage().size());
 
         // Change cache object
-        ImCache.instance().cacheConfig(() -> new MemoryCache().scan(TEMP_DIR));
+        ImCache.instance().cacheConfig(() -> MemoryCache.load(TEMP_DIR));
         assertEquals(1, ImCache.instance().storage().size());
 
         // Check image integrity

@@ -3,6 +3,11 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Pad] class implements a padding transformation for images.
+///
+/// It resizes an input image to fit within the target dimensions while preserving the aspect ratio and centers it on a
+/// new canvas filled with a specified padding color. This ensures that the final image has the exact target dimensions
+/// without cropping or stretching the original content.
 public class Pad implements Transform {
     //================================================================================
     // Properties

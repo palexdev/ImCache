@@ -3,6 +3,9 @@ package io.github.palexdev.imcache.utils;
 import java.net.URL;
 import java.util.*;
 
+/**
+ * An enumeration representing various media types (MIME types) for images and videos.
+ */
 public enum MediaType {
     // Image MIME types
     JPEG("image/jpeg"),
@@ -65,11 +68,14 @@ public enum MediaType {
     //================================================================================
     // Static Methods
     //================================================================================
+
+    /// @return whether the given MIME type is supported.
     public static boolean isSupportedMimeType(String mimeType) {
         if (mimeType == null) return false;
         return MIME_TYPE_MAP.containsKey(mimeType.toLowerCase());
     }
 
+    /// @return whether the given URL has a supported extension.
     public static boolean isSupportedExtension(URL url) {
         if (url == null) return false;
         String path = url.getPath();

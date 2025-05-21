@@ -3,6 +3,15 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Brightness] class implements the [Transform] interface and provides functionality to adjust the brightness level
+/// of a given image.
+///
+/// This transformation involves modifying the RGB values of each pixel by adding a specific brightness value,
+/// clamping the result to ensure the values remain within the valid range [0, 255].
+///
+/// For both negative and positive brightness values:
+/// - A positive value increases the brightness of the image.
+/// - A negative value darkens the image.
 public class Brightness implements Transform {
     //================================================================================
     // Properties

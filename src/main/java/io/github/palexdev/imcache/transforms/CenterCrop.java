@@ -2,6 +2,11 @@ package io.github.palexdev.imcache.transforms;
 
 import java.awt.image.BufferedImage;
 
+/// The [CenterCrop] class implements a center-cropping image transformation.
+///
+/// It crops an input image to the desired width and height while maintaining the aspect ratio.
+/// The crop is centered in the original image. After cropping, the result is resized
+/// to exactly match the specified target dimensions.
 public class CenterCrop implements Transform {
     //================================================================================
     // Properties

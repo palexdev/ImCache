@@ -4,6 +4,9 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 
+/// The [Flip] class is a transformation that flips a source [BufferedImage] either horizontally or vertically based on
+/// the specified [FlipOrientation].
+/// This transformation modifies the image by inverting its pixels along the specified axis.
 public class Flip implements Transform {
     //================================================================================
     // Properties

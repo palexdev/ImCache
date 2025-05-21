@@ -3,6 +3,10 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Resize] class scales a given [BufferedImage] to the specified target width and height, potentially altering
+/// the aspect ratio if the width and height ratios do not match.
+///
+/// The resizing process uses smooth scaling to improve the visual quality of the output image.
 public class Resize implements Transform {
     //================================================================================
     // Properties

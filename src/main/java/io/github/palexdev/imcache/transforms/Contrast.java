@@ -3,6 +3,14 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Contrast] class represents an image transformation that adjusts the contrast of an input [BufferedImage].
+///
+/// This transform modifies the intensity of colors in an image relative to a specified contrast level.
+/// Higher contrast values enhance the intensity differences between colors, while lower values reduce the differences,
+/// potentially leading to a flatter image.
+///
+/// The contrast adjustment is centered around a midpoint value of 128
+/// for each color channel (red, green, blue).
 public class Contrast implements Transform {
     //================================================================================
     // Properties

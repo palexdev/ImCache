@@ -3,6 +3,11 @@ package io.github.palexdev.imcache.transforms;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
+/// The [Sketch] class implements a stylized edge-detection transformation that simulates a sketch or pencil-drawing
+/// effect on an image.
+///
+/// It works by computing color differences between diagonally adjacent pixels to highlight edges.
+/// The result is a grayscale image with enhanced edges, resembling a hand-drawn sketch.
 public class Sketch implements Transform {
 
     //================================================================================

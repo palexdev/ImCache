@@ -1,5 +1,6 @@
 package io.github.palexdev.imcache.exceptions;
 
+/// Custom exception for handling errors that occur within the `ImCache` library.
 public class ImCacheException extends RuntimeException {
 
     //================================================================================
