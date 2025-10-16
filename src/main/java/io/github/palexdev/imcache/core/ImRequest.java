@@ -18,12 +18,6 @@
 
 package io.github.palexdev.imcache.core;
 
-import javax.imageio.ImageIO;
-
-import io.github.palexdev.imcache.cache.WithID;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.transforms.Transform;
-import io.github.palexdev.imcache.utils.*;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.net.URLConnection;
@@ -34,6 +28,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import javax.imageio.ImageIO;
+
+import io.github.palexdev.imcache.cache.WithID;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+import io.github.palexdev.imcache.transforms.Transform;
+import io.github.palexdev.imcache.utils.*;
 
 /// As the name suggests, this class represents a request for loading a certain image from a [URL].
 ///
@@ -163,6 +164,9 @@ public class ImRequest implements WithID {
     /// @see ImageUtils#toImage(Object)
     /// @see #setImageConverter(Function)
     protected ImImage transform(ImImage src) {
+        if (src == null) {
+            throw new ImCacheException("Could not transform image because source image is null");
+        }
         if (transforms.isEmpty()) return src;
         BufferedImage img = src.asImage();
         for (Transform transform : transforms) {
