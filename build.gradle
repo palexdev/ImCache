@@ -16,12 +16,10 @@
  * along with ImCache. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
     id 'java-library'
-    id 'com.vanniktech.maven.publish' version "$mavenPublish"
     id 'org.openjfx.javafxplugin' version "$jfxPlugin"
+    id 'com.vanniktech.maven.publish' version "$mavenPublish"
 }
 
 group = 'io.github.palexdev'
@@ -64,7 +62,7 @@ test {
 }
 
 configurations {
-    // Remove vanniktech non-sense
+    // Remove vanniktech nonsense
     gradle.taskGraph.whenReady { graph ->
         if (graph.hasTask(plainJavadocJar)) {
             plainJavadocJar.enabled = false
@@ -73,6 +71,6 @@ configurations {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.S01)
+    publishToMavenCentral()
     signAllPublications()
 }
