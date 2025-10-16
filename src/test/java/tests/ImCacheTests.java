@@ -27,6 +27,7 @@ import io.github.palexdev.imcache.core.ImRequest.RequestState;
 import io.github.palexdev.imcache.transforms.*;
 import io.github.palexdev.imcache.utils.TriConsumer;
 import io.github.palexdev.imcache.utils.URLHandler;
+
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.apache.commons.io.FileUtils;

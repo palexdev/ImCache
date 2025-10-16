@@ -20,6 +20,7 @@ package io.github.palexdev.imcache.cache;
 
 import io.github.palexdev.imcache.exceptions.ImCacheException;
 import io.github.palexdev.imcache.utils.URLHandler;
+
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
