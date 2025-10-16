@@ -18,17 +18,18 @@
 
 package io.github.palexdev.imcache.cache;
 
-import io.github.palexdev.imcache.core.ImImage;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.utils.ImageUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.SequencedMap;
-import java.util.stream.Stream;
+
+import io.github.palexdev.imcache.core.ImImage;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+import io.github.palexdev.imcache.utils.ImageUtils;
 
 /// Concrete implementation of [DiskCache] that stores images on the file system and keeps them in memory as [Files][File].
 /// By default, the save path is set to [#DEFAULT_CACHE_PATH].
@@ -107,18 +108,26 @@ public class DiskCache extends ImgCache<File> {
     ///
     /// Differently from [MemoryCache#load(Path, int)], files are not deserialized because this cache stores images
     /// indirectly as [Files][File]. They are deserialized only when requested by [#getImage(String)].
+    ///
+    /// File names are expected to be valid ids already, so [WithID#generateId(File)] is not used!
     public static DiskCache load(Path loadPath, int capacity) {
-        DiskCache cache = new DiskCache();
+        if (loadPath == null || !Files.isDirectory(loadPath)) {
+            throw new ImCacheException(
+                "The provided path is not a valid directory: " + loadPath
+            );
+        }
+
+        DiskCache cache = new DiskCache(loadPath);
         cache.capacity = capacity;
-        try (Stream<Path> stream = Files.list(loadPath)) {
-            stream.filter(f -> !Files.isDirectory(f))
-                .map(Path::toFile)
+
+        try {
+            File[] files = Optional.of(loadPath.toFile())
+                .map(f -> f.listFiles(File::isFile))
+                .orElse(new File[0]);
+            Arrays.stream(files)
                 .sorted(Comparator.comparingLong(File::lastModified))
-                .forEach(f -> {
-                    if (cache.size() == capacity) cache.removeOldest();
-                    cache.cache.put(WithID.generateId(f), f);
-                });
-        } catch (IOException ex) {
+                .forEach(f -> cache.store(f.getName(), f));
+        } catch (Exception ex) {
             throw new ImCacheException(
                 "An error occurred while reloading images from path " + loadPath,
                 ex

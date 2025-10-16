@@ -18,18 +18,19 @@
 
 package io.github.palexdev.imcache.cache;
 
-import io.github.palexdev.imcache.core.ImImage;
-import io.github.palexdev.imcache.exceptions.ImCacheException;
-import io.github.palexdev.imcache.utils.ImageUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.SequencedMap;
-import java.util.stream.Stream;
+
+import io.github.palexdev.imcache.core.ImImage;
+import io.github.palexdev.imcache.exceptions.ImCacheException;
+import io.github.palexdev.imcache.utils.ImageUtils;
 
 /// Simplest concrete implementation of [ImgCache]. Images are directly stored in memory as they are, and therefore
 /// [#getImage(String)] is a direct call to the backing data structure.
@@ -60,17 +61,25 @@ public class MemoryCache extends ImgCache<ImImage> {
     /// Files are deserialized to images with [ImageUtils#deserialize(File)] and stored in the cache with an id generated
     /// from the image's url, [WithID#generateId(URL)].
     public static MemoryCache load(Path loadPath, int capacity) {
+        if (loadPath == null || !Files.isDirectory(loadPath)) {
+            throw new ImCacheException(
+                "The provided path is not a valid directory: " + loadPath
+            );
+        }
+
         MemoryCache cache = new MemoryCache();
         cache.capacity = capacity;
-        try (Stream<Path> stream = Files.list(loadPath)) {
-            stream.filter(f -> !Files.isDirectory(f))
-                .map(Path::toFile)
+
+        try {
+            File[] files = Optional.of(loadPath.toFile())
+                .map(f -> f.listFiles(File::isFile))
+                .orElse(new File[0]);
+            Arrays.stream(files)
                 .sorted(Comparator.comparingLong(File::lastModified))
                 .forEach(f -> {
                     try {
                         ImImage img = ImageUtils.deserialize(f);
-                        if (cache.size() == capacity) cache.removeOldest();
-                        cache.cache.put(WithID.generateId(img.url()), img);
+                        cache.store(WithID.generateId(img.url()), img);
                     } catch (IOException ex) {
                         throw new ImCacheException(
                             "Failed to reload cached image from file " + f,
@@ -78,7 +87,7 @@ public class MemoryCache extends ImgCache<ImImage> {
                         );
                     }
                 });
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new ImCacheException(
                 "An error occurred while reloading images from path " + loadPath,
                 ex
